@@ -15,9 +15,9 @@ La plateforme connecte **trois acteurs** :
 
 | Rôle | Description |
 |------|-------------|
-| 🎓 **Apprenant** | Soumet des projets, reçoit des badges certifiés, gère son portfolio blockchain |
-| 📚 **Formateur** | Évalue les projets, émet les badges NFT, suit l'historique on-chain |
-| 🏢 **Recruteur** | Vérifie les portfolios par ID, recrute les talents, certifie les expériences terrain |
+|  **Apprenant** | Soumet des projets, reçoit des badges certifiés, gère son portfolio blockchain |
+|  **Formateur** | Évalue les projets, émet les badges NFT, suit l'historique on-chain |
+|  **Recruteur** | Vérifie les portfolios par ID, recrute les talents, certifie les expériences terrain |
 
 ---
 
@@ -39,7 +39,7 @@ La plateforme connecte **trois acteurs** :
 ## Instructions d'installation et d'utilisation
 
 ### Prérequis
-Aucun. Pas de Node.js, pas de npm, pas de build. Un navigateur suffit.
+Aucun. Un navigateur suffit.
 
 ### Lancer le projet
 
@@ -47,7 +47,7 @@ Aucun. Pas de Node.js, pas de npm, pas de build. Un navigateur suffit.
 ```
 1. Télécharger le fichier skillbadge_v6.html
 2. Double-cliquer pour l'ouvrir dans votre navigateur
-3. C'est tout.
+
 ```
 
 **Option 2 — Cloner le repo**
@@ -76,7 +76,7 @@ cd skillbadge-hackaton2026
 - **Portfolio certifié** — Grille de badges NFT cliquables avec tokenId, hash blockchain, score /100 et projet associé
 - **Soumission de projets** — Formulaire (titre, description, technologies, lien GitHub) avec notification automatique aux formateurs
 - **Suivi des projets** — Statuts en temps réel : En attente / Validé / Refusé (avec motif)
-- **Notifications** — 4 types : badge attribué 🎖️, projet refusé, commentaire formateur 💬, offre d'emploi 📩
+- **Notifications** — 4 types : badge attribué , projet refusé, commentaire formateur , offre d'emploi 
 - **Score dynamique** — Calculé automatiquement : `nb_badges × 150 + nb_EXPERT × 100 + nb_INTER × 50`
 - **ID Recruteur personnel** — Identifiant unique (ex: `X670&gm`) à communiquer aux recruteurs pour accès au dossier
 - **Explorateur de talents** — Voir tous les apprenants inscrits, filtrer par nom ou domaine
@@ -98,7 +98,7 @@ cd skillbadge-hackaton2026
 - **Explorateur de talents** — Grille de tous les apprenants avec photo, score, badges, wallet ; filtres par nom et domaine
 - **Envoi d'offres d'emploi** — Depuis l'explorateur : titre du poste + message personnalisé → notification immédiate à l'apprenant
 - **Suivi des offres** — Historique de toutes les offres envoyées
-- **Badge Terrain Expert** ⭐ — Fonctionnalité exclusive : certifier une expérience professionnelle réelle d'un apprenant ayant travaillé dans l'entreprise (poste, domaine, durée, appréciation) → Badge NFT immuable de type "terrain", score 100/100
+- **Badge Terrain Expert**  — Fonctionnalité exclusive : certifier une expérience professionnelle réelle d'un apprenant ayant travaillé dans l'entreprise (poste, domaine, durée, appréciation) → Badge NFT immuable de type "terrain", score 100/100
 
 ### 🔗 Système Blockchain
 
@@ -119,8 +119,8 @@ cd skillbadge-hackaton2026
 
 ## Équipe
 
-**Wẽnd Protocol** — MIABE Hackathon 2026 · Burkina Faso
+**Youngtech** — MIABE Hackathon 2026 · Burkina Faso
 
 ---
 
-*© 2026 SkillBadge · Le Registre Souverain des Compétences · Burkina Faso*
+
