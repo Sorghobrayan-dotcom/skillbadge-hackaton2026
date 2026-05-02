@@ -71,7 +71,7 @@ cd skillbadge-hackaton2026
 
 ## Fonctionnalités principales développées
 
-### 🎓 Espace Apprenant
+###  Espace Apprenant
 
 - **Portfolio certifié** — Grille de badges NFT cliquables avec tokenId, hash blockchain, score /100 et projet associé
 - **Soumission de projets** — Formulaire (titre, description, technologies, lien GitHub) avec notification automatique aux formateurs
@@ -81,7 +81,7 @@ cd skillbadge-hackaton2026
 - **ID Recruteur personnel** — Identifiant unique (ex: `X670&gm`) à communiquer aux recruteurs pour accès au dossier
 - **Explorateur de talents** — Voir tous les apprenants inscrits, filtrer par nom ou domaine
 
-### 📚 Espace Formateur
+###  Espace Formateur
 
 - **Dashboard** — Statistiques globales (badges émis, projets en attente, apprenants) + répartition par domaine
 - **Validation de projets** — Pour chaque projet en attente : lire la description, consulter le lien GitHub, voir les commentaires précédents
@@ -91,7 +91,7 @@ cd skillbadge-hackaton2026
 - **Projets notés** — Historique de tous les projets évalués (validés ou refusés) avec badges et commentaires associés
 - **Historique blockchain** — Tableau de toutes les transactions on-chain : date, apprenant, badge, niveau, hash TX, statut "Confirmé"
 
-### 🏢 Espace Recruteur
+### Espace Recruteur
 
 - **Vérification de portfolio** — Accès par ID unique du candidat uniquement (protection vie privée : impossible de chercher par nom ou email)
 - **Vue portfolio complète** — Photo, badges NFT, projets validés, liens GitHub, hash blockchain, mention "Vérifié on-chain · Polygon Mainnet"
