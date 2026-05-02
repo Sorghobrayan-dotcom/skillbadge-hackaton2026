@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillBadge v4 — Registre Souverain des Compétences</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    :root {
+      --ink: #0D0D0D;
+      --ink2: #2A2A2A;
+      --sand: #F5F2ED;
+      --sand2: #EDE9E2;
+      --sand3: #DDD9D1;
+      --gold: #C9A84C;
+      --gold-light: #F0DFA0;
+      --gold-dark: #9A7A28;
+      --green: #1A6B3A;
+      --green-light: #D4EDDA;
+      --red: #B91C1C;
+      --red-light: #FEE2E2;
+      --blue: #1E40AF;
+      --blue-light: #DBEAFE;
+      --purple: #6B21A8;
+      --purple-light: #F3E8FF;
+      --white: #FFFFFF;
+      --mono: 'DM Mono', monospace;
+      --serif: 'Fraunces', serif;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    }
+ 
+    html, body { font-family: var(--sans); background: var(--sand); color: var(--ink); min-height: 100vh; }
+ 
+    @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes notifIn { from { opacity:0; transform:translateY(-20px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes expand { from { opacity:0; max-height:0; } to { opacity:1; max-height:600px; } }
+ 
+    .fade-up { animation: fadeUp .4s ease both; }
+ 
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--sand); }
+    ::-webkit-scrollbar-thumb { background: var(--sand3); border-radius: 3px; }
+ 
+    .nav { position: sticky; top:0; z-index:100; background: var(--white); border-bottom: 1px solid var(--sand3); }
+    .nav-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; padding: 0 24px; height: 60px; gap:8px; }
+    .nav-logo { font-family:var(--serif); font-weight:900; font-size:20px; color:var(--ink); letter-spacing:-.03em; margin-right:16px; }
+    .nav-logo span { color: var(--gold); }
+    .nav-items { display:flex; gap:2px; flex:1; }
+    .nav-btn { background:none; border:none; font-family:var(--sans); font-size:13px; font-weight:500; color:var(--ink2); padding:8px 14px; border-radius:8px; cursor:pointer; transition:.15s; white-space:nowrap; }
+    .nav-btn:hover { background:var(--sand); }
+    .nav-btn.active { background:var(--ink); color:var(--white); }
+    .nav-right { display:flex; align-items:center; gap:10px; margin-left:auto; }
+    .nav-user { display:flex; align-items:center; gap:8px; }
+    .nav-role { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; padding:3px 8px; border-radius:20px; }
+    .role-apprenant { background:var(--blue-light); color:var(--blue); }
+    .role-formateur { background:var(--gold-light); color:var(--gold-dark); }
+    .role-recruteur { background:var(--green-light); color:var(--green); }
+ 
+    .toast { position:fixed; top:72px; right:20px; z-index:999; background:var(--ink); color:var(--white); padding:14px 18px; border-radius:var(--radius); font-size:13px; max-width:320px; animation:notifIn .3s ease; box-shadow:var(--shadow-lg); display:flex; gap:10px; align-items:flex-start; }
+    .toast-close { background:none; border:none; color:rgba(255,255,255,.5); cursor:pointer; font-size:16px; line-height:1; margin-left:auto; padding:0; }
+ 
+    .page { max-width:1100px; margin:0 auto; padding:32px 24px; }
+    .page-sm { max-width:700px; }
+    .page-title { font-family:var(--serif); font-size:32px; font-weight:900; color:var(--ink); margin-bottom:6px; line-height:1.1; }
+    .page-sub { font-size:14px; color:#6B6860; margin-bottom:28px; }
+ 
+    .card { background:var(--white); border:1px solid var(--sand3); border-radius:16px; }
+    .card-p { padding:24px; }
+    .card-header { padding:20px 24px; border-bottom:1px solid var(--sand2); font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:space-between; }
+ 
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .grid-auto { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+ 
+    /* Badge card clickable */
+    .badge-card { background:var(--white); border:1px solid var(--sand3); border-radius:14px; padding:18px; position:relative; overflow:hidden; transition:.2s; cursor:pointer; }
+    .badge-card:hover { border-color:var(--gold); box-shadow:var(--shadow); }
+    .badge-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); }
+    .badge-title { font-weight:700; font-size:14px; margin-bottom:4px; }
+    .badge-domain { font-size:11px; color:#6B6860; margin-bottom:12px; }
+    .badge-meta { font-family:var(--mono); font-size:10px; color:#6B6860; display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--sand2); padding-top:12px; }
+    .badge-hash { color:var(--blue); }
+    .badge-verified { color:var(--green); font-weight:600; font-size:10px; }
+    .badge-expand { border-top:1px solid var(--sand2); margin-top:12px; padding-top:12px; animation:expand .3s ease; overflow:hidden; }
+ 
+    .pill { display:inline-flex; align-items:center; font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; letter-spacing:.04em; text-transform:uppercase; }
+    .pill-expert { background:#FEF3C7; color:#92400E; border:1px solid #F59E0B; }
+    .pill-inter { background:var(--blue-light); color:var(--blue); border:1px solid #93C5FD; }
+    .pill-debut { background:var(--green-light); color:var(--green); border:1px solid #6EE7B7; }
+    .pill-pending { background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; }
+    .pill-valid { background:var(--green-light); color:var(--green); border:1px solid #6EE7B7; }
+    .pill-reject { background:var(--red-light); color:var(--red); border:1px solid #FCA5A5; }
+    .pill-terrain { background:linear-gradient(135deg,#92400E,#78350F); color:#FEF3C7; border:1px solid #D97706; font-size:10px; }
+ 
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:11px; font-weight:700; color:#6B6860; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+    .field input, .field select, .field textarea { width:100%; padding:11px 14px; border:1.5px solid var(--sand3); border-radius:9px; font-size:14px; font-family:var(--sans); color:var(--ink); background:var(--white); outline:none; transition:.15s; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--gold); }
+    .field textarea { resize:vertical; min-height:80px; }
+ 
+    .btn { display:inline-flex; align-items:center; gap:6px; border:none; border-radius:9px; font-family:var(--sans); font-weight:600; cursor:pointer; transition:.15s; }
+    .btn-primary { background:var(--ink); color:var(--white); padding:11px 20px; font-size:14px; }
+    .btn-primary:hover { background:var(--ink2); }
+    .btn-gold { background:var(--gold); color:var(--ink); padding:11px 20px; font-size:14px; }
+    .btn-gold:hover { background:var(--gold-dark); color:var(--white); }
+    .btn-outline { background:transparent; color:var(--ink); border:1.5px solid var(--sand3); padding:10px 18px; font-size:13px; }
+    .btn-outline:hover { border-color:var(--ink); }
+    .btn-danger { background:var(--red); color:var(--white); padding:10px 18px; font-size:13px; }
+    .btn-sm { padding:7px 14px; font-size:12px; }
+    .btn-green { background:var(--green); color:var(--white); padding:8px 14px; font-size:12px; }
+    .btn-red { background:var(--red); color:var(--white); padding:8px 14px; font-size:12px; }
+    .btn-purple { background:var(--purple); color:var(--white); padding:8px 14px; font-size:12px; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+ 
+    .avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; overflow:hidden; }
+    .avatar img { width:100%; height:100%; object-fit:cover; }
+ 
+    .stat-card { background:var(--white); border:1px solid var(--sand3); border-radius:14px; padding:20px 22px; }
+    .stat-num { font-family:var(--serif); font-size:36px; font-weight:900; color:var(--ink); line-height:1; }
+    .stat-label { font-size:12px; color:#6B6860; margin-top:4px; font-weight:500; }
+    .stat-trend { font-size:11px; color:var(--green); font-weight:600; margin-top:6px; }
+ 
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13px; min-width:500px; }
+    thead th { padding:11px 16px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#6B6860; background:var(--sand); border-bottom:1px solid var(--sand3); }
+    tbody td { padding:14px 16px; border-bottom:1px solid var(--sand2); }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:var(--sand); }
+ 
+    .auth-wrap { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
+    .auth-left { background:var(--ink); color:var(--white); padding:60px 48px; display:flex; flex-direction:column; justify-content:space-between; }
+    .auth-left-logo { font-family:var(--serif); font-size:28px; font-weight:900; margin-bottom:48px; }
+    .auth-left-logo span { color:var(--gold); }
+    .auth-right { display:flex; align-items:center; justify-content:center; padding:48px 40px; background:var(--sand); }
+    .auth-box { width:100%; max-width:420px; }
+    .auth-title { font-family:var(--serif); font-size:28px; font-weight:900; margin-bottom:8px; }
+    .auth-sub { font-size:14px; color:#6B6860; margin-bottom:28px; }
+    .role-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:24px; }
+    .role-opt { padding:10px 6px; border:1.5px solid var(--sand3); border-radius:9px; text-align:center; cursor:pointer; transition:.15s; background:var(--white); }
+    .role-opt.selected { border-color:var(--gold); background:var(--gold-light); }
+    .role-opt-icon { font-size:18px; margin-bottom:3px; }
+    .role-opt-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+ 
+    .prog-bar { background:var(--sand2); border-radius:4px; height:6px; overflow:hidden; }
+    .prog-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); border-radius:4px; transition:width .5s ease; }
+ 
+    .chain-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:20px; }
+    .chain-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+    .chain-label { font-size:11px; font-weight:700; color:var(--green); font-family:var(--mono); }
+ 
+    .score-ring { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+    .score-val { position:absolute; font-family:var(--serif); font-weight:900; font-size:22px; color:var(--ink); }
+ 
+    /* Explorer participant card */
+    .participant-card { background:var(--white); border:1px solid var(--sand3); border-radius:16px; overflow:hidden; transition:.2s; }
+    .participant-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+    .participant-photo { width:100%; height:160px; object-fit:cover; }
+    .participant-photo-placeholder { width:100%; height:160px; display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .participant-id { font-family:var(--mono); font-size:11px; background:var(--sand); color:var(--ink2); padding:3px 8px; border-radius:6px; display:inline-block; border:1px solid var(--sand3); }
+ 
+    /* Stats banner explorer */
+    .stats-banner { background:linear-gradient(135deg,var(--ink) 0%,#1a1a2e 100%); border-radius:20px; padding:36px; margin-bottom:32px; color:var(--white); position:relative; overflow:hidden; }
+    .stats-banner::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; border-radius:50%; background:var(--gold); opacity:.08; }
+    .stats-banner::after { content:''; position:absolute; bottom:-60px; left:20%; width:150px; height:150px; border-radius:50%; background:var(--gold); opacity:.05; }
+    .stats-banner-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; position:relative; z-index:1; }
+    .stats-banner-item { text-align:center; }
+    .stats-banner-num { font-family:var(--serif); font-size:42px; font-weight:900; color:var(--gold); line-height:1; }
+    .stats-banner-label { font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; }
+ 
+    /* ID badge chip */
+    .id-chip { display:inline-flex; align-items:center; gap:6px; background:var(--ink); color:var(--gold); font-family:var(--mono); font-size:12px; font-weight:700; padding:5px 10px; border-radius:8px; letter-spacing:.03em; }
+ 
+    /* Comment section */
+    .comment { background:var(--sand); border-radius:10px; padding:12px 14px; border-left:3px solid var(--gold); margin-bottom:8px; }
+    .comment-author { font-size:11px; font-weight:700; color:var(--gold-dark); margin-bottom:3px; }
+    .comment-text { font-size:13px; color:var(--ink2); line-height:1.5; }
+    .comment-date { font-size:10px; color:#6B6860; margin-top:4px; }
+ 
+    @media(max-width:900px) {
+      .auth-left { display:none; }
+      .auth-wrap { grid-template-columns:1fr; }
+      .grid-3 { grid-template-columns:1fr 1fr; }
+      .stats-banner-grid { grid-template-columns:1fr 1fr; }
+      .grid-4 { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:640px) {
+      .grid-2, .grid-3 { grid-template-columns:1fr; }
+      .nav-items { display:none !important; }
+      .nav-right .nav-user div { display:none; }
+      .page { padding:16px 12px; padding-bottom:80px; }
+      .page-title { font-size:22px; }
+      .stats-banner-grid { grid-template-columns:1fr 1fr; gap:16px; }
+      .btn-outline.btn-sm[style*="width:100%"] { font-size:11px; }
+    }
+ 
+    /* Bottom nav for mobile */
+    .bottom-nav { display:none; }
+    @media(max-width:640px) {
+      .bottom-nav {
+        display:flex;
+        position:fixed;
+        bottom:0; left:0; right:0;
+        background:var(--white);
+        border-top:1px solid var(--sand3);
+        z-index:200;
+        padding:6px 0 env(safe-area-inset-bottom, 6px);
+        box-shadow:0 -4px 16px rgba(0,0,0,0.08);
+      }
+      .bnav-btn {
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:2px;
+        border:none;
+        background:none;
+        font-family:var(--sans);
+        font-size:9px;
+        font-weight:600;
+        color:#6B6860;
+        padding:6px 2px;
+        cursor:pointer;
+        transition:.15s;
+        text-transform:uppercase;
+        letter-spacing:.03em;
+        position:relative;
+      }
+      .bnav-btn.active { color:var(--ink); }
+      .bnav-btn.active .bnav-icon { background:var(--gold-light); border-radius:8px; }
+      .bnav-icon { font-size:18px; width:32px; height:24px; display:flex; align-items:center; justify-content:center; }
+      .bnav-badge { position:absolute; top:4px; right:calc(50% - 20px); background:var(--red); color:white; border-radius:10px; font-size:8px; font-weight:700; padding:1px 4px; min-width:14px; text-align:center; }
+    }
+ 
+    .divider { height:1px; background:var(--sand3); margin:20px 0; }
+    .empty { text-align:center; padding:48px 20px; color:#6B6860; }
+    .empty-icon { font-size:32px; margin-bottom:12px; opacity:.4; }
+    .empty-text { font-size:14px; }
+    .alert { padding:12px 16px; border-radius:9px; font-size:13px; margin-bottom:16px; }
+    .alert-success { background:var(--green-light); color:var(--green); border:1px solid #6EE7B7; }
+    .alert-error { background:var(--red-light); color:var(--red); border:1px solid #FCA5A5; }
+    .alert-info { background:var(--blue-light); color:var(--blue); border:1px solid #93C5FD; }
+    .alert-warn { background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; }
+    .tabs { display:flex; gap:2px; background:var(--sand2); border-radius:10px; padding:3px; margin-bottom:20px; }
+    .tab { flex:1; padding:8px 12px; font-size:13px; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; border-radius:8px; color:#6B6860; transition:.15s; font-family:var(--sans); }
+    .tab.active { background:var(--white); color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+    .offer-card { background:var(--sand); border:1px solid var(--sand3); border-radius:12px; padding:14px 16px; }
+    .offer-title { font-weight:700; font-size:13px; margin-bottom:2px; }
+    .offer-from { font-size:11px; color:#6B6860; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+ 
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+ 
+const LS = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  push: (k, item) => { const arr = LS.get(k) || []; arr.push(item); LS.set(k, arr); return arr; },
+  update: (k, id, patch) => {
+    const arr = LS.get(k) || [];
+    const updated = arr.map(x => x.id === id ? { ...x, ...patch } : x);
+    LS.set(k, updated);
+    return updated;
+  },
+};
+ 
+// Generate recruiter ID like X670&gm
+const genRecruteurId = () => {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const nums = '0123456789';
+  const special = '&@#$';
+  return upper[Math.floor(Math.random()*26)] +
+    nums[Math.floor(Math.random()*10)] +
+    nums[Math.floor(Math.random()*10)] +
+    nums[Math.floor(Math.random()*10)] +
+    special[Math.floor(Math.random()*4)] +
+    letters[Math.floor(Math.random()*26)] +
+    letters[Math.floor(Math.random()*26)];
+};
+ 
+// Burkinabè photo URLs (using diverse African portrait placeholders)
+const PHOTOS_AFRICAINS = [
+  'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1521566652839-697aa473761a?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1507152832244-10d45c7eda57?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1524503033411-c9566986fc8f?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1530785602389-07594beb8b73?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=300&h=300&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1596215143422-56d7b2e41c8e?w=300&h=300&fit=crop&crop=face',
+];
+ 
+const initData = () => {
+  if (!LS.get('sb_initialized_v4')) {
+    LS.set('sb_users', [
+      { id: 'USR-001', email: 'salimata@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Salimata', nom: 'Ouédraogo', ville: 'Ouagadougou', wallet: '0x3f4A2c8B92c', score: 820, createdAt: '2024-01-15', photo: PHOTOS_AFRICAINS[0], recruteurId: 'X670&gm' },
+      { id: 'USR-004', email: 'ahmed@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Ahmed', nom: 'Compaoré', ville: 'Bobo-Dioulasso', wallet: '0x9A2b1c3D4e', score: 650, createdAt: '2024-02-10', photo: PHOTOS_AFRICAINS[1], recruteurId: 'B234&kp' },
+      { id: 'USR-005', email: 'fatima@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Fatima', nom: 'Sawadogo', ville: 'Ouagadougou', wallet: '0x7c8D9e0f1a', score: 920, createdAt: '2024-03-01', photo: PHOTOS_AFRICAINS[2], recruteurId: 'K891&rt' },
+      { id: 'USR-006', email: 'ibrahim@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Ibrahim', nom: 'Traoré', ville: 'Koudougou', wallet: '0x2e3F4g5H6i', score: 480, createdAt: '2024-03-15', photo: PHOTOS_AFRICAINS[3], recruteurId: 'M456&yz' },
+      { id: 'USR-007', email: 'aminata@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Aminata', nom: 'Zongo', ville: 'Ouagadougou', wallet: '0x5j6K7l8M9n', score: 730, createdAt: '2024-04-01', photo: PHOTOS_AFRICAINS[4], recruteurId: 'P123&wv' },
+      { id: 'USR-008', email: 'moussa@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Moussa', nom: 'Kaboré', ville: 'Banfora', wallet: '0x0o1P2q3R4s', score: 560, createdAt: '2024-04-20', photo: PHOTOS_AFRICAINS[5], recruteurId: 'Q789&nx' },
+      { id: 'USR-009', email: 'aissata@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Aïssata', nom: 'Coulibaly', ville: 'Ouagadougou', wallet: '0x4t5U6v7W8x', score: 810, createdAt: '2024-05-05', photo: PHOTOS_AFRICAINS[6], recruteurId: 'R345&jm' },
+      { id: 'USR-010', email: 'seydou@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Seydou', nom: 'Diallo', ville: 'Dédougou', wallet: '0x9y0Z1a2B3c', score: 390, createdAt: '2024-05-20', photo: PHOTOS_AFRICAINS[7], recruteurId: 'S012&fk' },
+      { id: 'USR-011', email: 'mariam@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Mariam', nom: 'Ouédraogo', ville: 'Ouagadougou', wallet: '0x4d5E6f7G8h', score: 970, createdAt: '2024-06-01', photo: PHOTOS_AFRICAINS[8], recruteurId: 'T678&lp' },
+      { id: 'USR-012', email: 'issouf@skillbadge.bf', password: 'pass123', role: 'apprenant', prenom: 'Issouf', nom: 'Barry', ville: 'Tenkodogo', wallet: '0x9i0J1k2L3m', score: 620, createdAt: '2024-06-15', photo: PHOTOS_AFRICAINS[9], recruteurId: 'U234&cq' },
+ 
+      { id: 'USR-002', email: 'sarah@tech.bf', password: 'pass123', role: 'recruteur', prenom: 'Sarah', nom: 'Jensen', entreprise: 'TechBF', ville: 'Ouagadougou' },
+      { id: 'USR-003', email: 'marcus@ecole.bf', password: 'pass123', role: 'formateur', prenom: 'Marcus', nom: 'Vane', code: 'FORM-2026-X9', domaine: 'Dev Frontend', etablissement: 'École Numérique BF' },
+    ]);
+    LS.set('sb_badges', [
+      { id: 'BDG-001', titre: 'React.js Avancé', niveau: 'EXPERT', domaine: 'Dev Frontend', apprenantId: 'USR-001', formateurId: 'USR-003', date: '2024-05-14', hash: '0xd4e56f8a2', tokenId: 'SKB-00847', score: 94, projetId: 'PRJ-001' },
+      { id: 'BDG-002', titre: 'PostgreSQL', niveau: 'EXPERT', domaine: 'Base de données', apprenantId: 'USR-001', formateurId: 'USR-003', date: '2024-03-02', hash: '0xa7b23c91d', tokenId: 'SKB-00612', score: 88, projetId: 'PRJ-002' },
+      { id: 'BDG-003', titre: 'Docker', niveau: 'INTERMÉDIAIRE', domaine: 'DevOps', apprenantId: 'USR-001', formateurId: 'USR-003', date: '2023-12-20', hash: '0xf91c2b34e', tokenId: 'SKB-00534', score: 79, projetId: null },
+      { id: 'BDG-004', titre: 'Python Data Science', niveau: 'EXPERT', domaine: 'Data Science', apprenantId: 'USR-005', formateurId: 'USR-003', date: '2024-04-10', hash: '0xb2c3d4e5f', tokenId: 'SKB-00921', score: 96, projetId: null },
+      { id: 'BDG-005', titre: 'Node.js Backend', niveau: 'INTERMÉDIAIRE', domaine: 'Dev Backend', apprenantId: 'USR-004', formateurId: 'USR-003', date: '2024-03-25', hash: '0xc3d4e5f6a', tokenId: 'SKB-00745', score: 82, projetId: null },
+      { id: 'BDG-006', titre: 'UI/UX Design', niveau: 'DÉBUTANT', domaine: 'Design', apprenantId: 'USR-007', formateurId: 'USR-003', date: '2024-05-01', hash: '0xd4e5f6a7b', tokenId: 'SKB-00634', score: 71, projetId: null },
+      { id: 'BDG-007', titre: 'Cybersécurité Avancée', niveau: 'EXPERT', domaine: 'Cybersécurité', apprenantId: 'USR-009', formateurId: 'USR-003', date: '2024-05-20', hash: '0xe5f6a7b8c', tokenId: 'SKB-01023', score: 91, projetId: null },
+      { id: 'BDG-008', titre: 'Flutter Mobile', niveau: 'INTERMÉDIAIRE', domaine: 'Mobile', apprenantId: 'USR-011', formateurId: 'USR-003', date: '2024-06-05', hash: '0xf6a7b8c9d', tokenId: 'SKB-01156', score: 87, projetId: null },
+    ]);
+    LS.set('sb_projets', [
+      { id: 'PRJ-001', apprenantId: 'USR-001', titre: 'App de paiement mobile', resume: 'Application de paiement peer-to-peer avec intégration Orange Money', notions: 'React Native, API REST, JWT', lien: 'github.com/salimata/pay-app', statut: 'validé', badgeId: 'BDG-001', createdAt: '2024-05-10' },
+      { id: 'PRJ-002', apprenantId: 'USR-001', titre: 'Dashboard Analytics', resume: 'Tableau de bord temps réel pour e-commerce', notions: 'PostgreSQL, Node.js, WebSockets', lien: 'github.com/salimata/analytics', statut: 'validé', badgeId: 'BDG-002', createdAt: '2024-02-20' },
+      { id: 'PRJ-003', apprenantId: 'USR-001', titre: 'Smart Contract NFT', resume: 'Contrat ERC-1155 pour certification on-chain', notions: 'Solidity, Hardhat, Polygon', lien: 'github.com/salimata/nft-cert', statut: 'en_attente', badgeId: null, createdAt: '2024-06-01' },
+    ]);
+    LS.set('sb_notifs', []);
+    LS.set('sb_offers', []);
+    LS.set('sb_comments', []);
+    LS.set('sb_initialized_v4', true);
+  }
+};
+initData();
+ 
+const genId = (prefix) => `${prefix}-${Date.now().toString(36).toUpperCase()}`;
+const genHash = () => '0x' + Math.random().toString(16).substr(2, 8) + Math.random().toString(16).substr(2, 4);
+const dateNow = () => new Date().toISOString().split('T')[0];
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+ 
+const niveauPill = (n) => {
+  if (n === 'EXPERT') return 'pill pill-expert';
+  if (n === 'INTERMÉDIAIRE') return 'pill pill-inter';
+  return 'pill pill-debut';
+};
+ 
+const VALID_CODES = ['FORM-2026-X9', 'FORM-2026-A1', 'FORM-2026-B2'];
+const DOMAINES = ['Dev Frontend', 'Dev Backend', 'DevOps', 'Data Science', 'IA / ML', 'Blockchain', 'Cybersécurité', 'Base de données', 'Mobile', 'Design'];
+const NIVEAUX = ['DÉBUTANT', 'INTERMÉDIAIRE', 'EXPERT'];
+ 
+// ═══════════════════════════════════════════════════
+// AVATAR with photo support
+// ═══════════════════════════════════════════════════
+const Avatar = ({ prenom, nom, size = 40, photo }) => {
+  const initials = ((prenom?.[0] || '') + (nom?.[0] || '')).toUpperCase() || '?';
+  const colors = ['#C9A84C','#1A6B3A','#1E40AF','#B91C1C','#6B21A8'];
+  const color = colors[(prenom?.charCodeAt(0) || 0) % colors.length];
+  if (photo) {
+    return (
+      <div className="avatar" style={{ width:size, height:size }}>
+        <img src={photo} alt={`${prenom} ${nom}`} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';}} />
+      </div>
+    );
+  }
+  return (
+    <div className="avatar" style={{ width:size, height:size, background:color, fontSize:size*.35, color:'#fff' }}>
+      {initials}
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+const Toast = ({ msg, onClose }) => (
+  <div className="toast">
+    <span style={{flex:1}}>{msg}</span>
+    <button className="toast-close" onClick={onClose}>×</button>
+  </div>
+);
+ 
+// ═══════════════════════════════════════════════════
+// SCORE RING
+// ═══════════════════════════════════════════════════
+const ScoreRing = ({ score, size=80 }) => {
+  const r = size/2 - 6;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 1000) * circ;
+  return (
+    <div className="score-ring" style={{width:size,height:size}}>
+      <svg width={size} height={size}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#EDE9E2" strokeWidth="5" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#C9A84C" strokeWidth="5"
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`} />
+      </svg>
+      <span className="score-val" style={{fontSize:size*.25}}>{score}</span>
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════
+const NAV_ICONS = {
+  portfolio:'🎓', notifications:'🔔', explorateur:'🔍', compte:'👤',
+  verification:'🔑', offres:'📩', badge_terrain:'🏭',
+  dashboard:'📊', validation:'📋', projets_notes:'✅', historique:'📜',
+};
+ 
+const Nav = ({ user, page, setPage, onLogout, notifCount }) => {
+  const navsByRole = {
+    apprenant: [
+      { id:'portfolio', label:'Portfolio' },
+      { id:'notifications', label:'Notifs' },
+      { id:'explorateur', label:'Explorer' },
+      { id:'compte', label:'Compte' },
+    ],
+    recruteur: [
+      { id:'verification', label:'Vérif.' },
+      { id:'explorateur', label:'Explorer' },
+      { id:'badge_terrain', label:'Terrain' },
+      { id:'offres', label:'Offres' },
+      { id:'compte', label:'Compte' },
+    ],
+    formateur: [
+      { id:'dashboard', label:'Dashboard' },
+      { id:'validation', label:'Valider' },
+      { id:'projets_notes', label:'Notés' },
+      { id:'historique', label:'Historique' },
+      { id:'compte', label:'Compte' },
+    ],
+  };
+  const items = navsByRole[user.role] || [];
+  return (
+    <>
+    <nav className="nav">
+      <div className="nav-inner">
+        <div className="nav-logo">Skill<span>Badge</span></div>
+        <div className="nav-items">
+          {items.map(i => (
+            <button key={i.id} className={`nav-btn${page===i.id?' active':''}`} onClick={() => setPage(i.id)}>
+              {i.label}
+              {i.id === 'validation' && notifCount > 0 && (
+                <span style={{marginLeft:6,background:'#B91C1C',color:'#fff',borderRadius:10,fontSize:9,fontWeight:700,padding:'1px 5px'}}>{notifCount}</span>
+              )}
+              {i.id === 'notifications' && notifCount > 0 && (
+                <span style={{marginLeft:6,background:'#B91C1C',color:'#fff',borderRadius:10,fontSize:9,fontWeight:700,padding:'1px 5px'}}>{notifCount}</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="nav-right">
+          <div className="chain-badge">
+            <div className="chain-dot" />
+            <span className="chain-label">POLYGON</span>
+          </div>
+          <div className="nav-user" style={{gap:8, display:'flex', alignItems:'center'}}>
+            <Avatar prenom={user.prenom} nom={user.nom} size={32} photo={user.photo} />
+            <div style={{lineHeight:1.2}}>
+              <div style={{fontSize:13,fontWeight:600}}>{user.prenom} {user.nom}</div>
+              <span className={`nav-role role-${user.role}`}>{user.role}</span>
+            </div>
+          </div>
+          <button className="btn btn-outline btn-sm" onClick={onLogout}>Déconnexion</button>
+        </div>
+      </div>
+    </nav>
+    {/* Bottom nav mobile */}
+    <nav className="bottom-nav">
+      {items.map(i => {
+        const badge = (i.id==='validation'||i.id==='notifications') && notifCount > 0;
+        return (
+          <button key={i.id} className={`bnav-btn${page===i.id?' active':''}`} onClick={() => setPage(i.id)}>
+            {badge && <span className="bnav-badge">{notifCount}</span>}
+            <span className="bnav-icon">{NAV_ICONS[i.id]||'•'}</span>
+            {i.label}
+          </button>
+        );
+      })}
+    </nav>
+    </>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// AUTH PAGE
+// ═══════════════════════════════════════════════════
+const AuthPage = ({ onLogin }) => {
+  const [mode, setMode] = useState('login');
+  const [role, setRole] = useState('apprenant');
+  const [form, setForm] = useState({ prenom:'', nom:'', email:'', ville:'', password:'', code:'', entreprise:'', etablissement:'', domaine:'' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+ 
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+ 
+  const handleLogin = () => {
+    setError('');
+    if (!form.email || !form.password) { setError('Veuillez remplir tous les champs.'); return; }
+    if (role === 'formateur' && !form.code) { setError('Le code formateur est requis.'); return; }
+    if (role === 'formateur' && !VALID_CODES.includes(form.code)) { setError('Code formateur invalide.'); return; }
+    setLoading(true);
+    setTimeout(() => {
+      const users = LS.get('sb_users') || [];
+      const found = users.find(u => u.email === form.email && u.password === form.password && u.role === role);
+      if (found) { onLogin(found); }
+      else { setError('Email, mot de passe ou rôle incorrect.'); }
+      setLoading(false);
+    }, 600);
+  };
+ 
+  const handleRegister = () => {
+    setError('');
+    if (!form.prenom || !form.nom || !form.email || !form.password) { setError('Tous les champs obligatoires doivent être remplis.'); return; }
+    if (form.password.length < 6) { setError('Le mot de passe doit comporter au moins 6 caractères.'); return; }
+    if (role === 'formateur') {
+      if (!form.code) { setError('Un code spécial est requis pour les formateurs.'); return; }
+      if (!VALID_CODES.includes(form.code)) { setError('Code formateur invalide.'); return; }
+    }
+    setLoading(true);
+    setTimeout(() => {
+      const users = LS.get('sb_users') || [];
+      if (users.find(u => u.email === form.email)) { setError('Cet email est déjà utilisé.'); setLoading(false); return; }
+      const photoIdx = users.filter(u=>u.role==='apprenant').length % PHOTOS_AFRICAINS.length;
+      const newUser = {
+        id: genId('USR'), email: form.email, password: form.password, role,
+        prenom: form.prenom, nom: form.nom, ville: form.ville || '',
+        score: 0, createdAt: dateNow(),
+        ...(role === 'recruteur' ? { entreprise: form.entreprise } : {}),
+        ...(role === 'formateur' ? { etablissement: form.etablissement, domaine: form.domaine, code: form.code } : {}),
+        ...(role === 'apprenant' ? { wallet: '0x' + Math.random().toString(16).substr(2,10), photo: PHOTOS_AFRICAINS[photoIdx], recruteurId: genRecruteurId() } : {}),
+      };
+      LS.push('sb_users', newUser);
+      onLogin(newUser);
+      setLoading(false);
+    }, 800);
+  };
+ 
+  const roles = [
+    { id:'apprenant', label:'Apprenant', desc:'Apprenants & talents' },
+    { id:'recruteur', label:'Recruteur', desc:'Entreprises & RH' },
+    { id:'formateur', label:'Formateur', desc:'Écoles & instructeurs' },
+  ];
+ 
+  return (
+    <div className="auth-wrap">
+      <div className="auth-left">
+        <div>
+          <div className="auth-left-logo">Skill<span>Badge</span></div>
+          <p style={{fontSize:15,lineHeight:1.7,color:'rgba(255,255,255,.7)',maxWidth:340}}>
+            Le registre souverain des compétences numériques. Chaque compétence certifiée, vérifiée et gravée sur la blockchain Polygon.
+          </p>
+        </div>
+        <div style={{borderTop:'1px solid rgba(255,255,255,.1)',paddingTop:24}}>
+          {[
+            ['Certifié on-chain', 'Chaque badge est un NFT vérifiable sur Polygon Mainnet'],
+            ['100% souverain', 'Vos données vous appartiennent, hébergées de façon décentralisée'],
+            ['7 000+ certifiés', 'Réseau croissant de talents numériques au Burkina Faso'],
+          ].map(([t,d]) => (
+            <div key={t} style={{marginBottom:16}}>
+              <div style={{fontWeight:700,fontSize:13,color:'#fff',marginBottom:2}}>{t}</div>
+              <div style={{fontSize:12,color:'rgba(255,255,255,.5)'}}>{d}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>© 2026 SkillBadge · MIABE Hackathon · Burkina Faso</div>
+      </div>
+ 
+      <div className="auth-right">
+        <div className="auth-box">
+          <div style={{display:'flex',gap:6,marginBottom:24}}>
+            {['login','register'].map(m => (
+              <button key={m} className={`tab${mode===m?' active':''}`} style={{flex:1}} onClick={() => { setMode(m); setError(''); }}>
+                {m === 'login' ? 'Connexion' : 'Inscription'}
+              </button>
+            ))}
+          </div>
+ 
+          <div className="auth-title">{mode === 'login' ? 'Bon retour' : 'Créer un compte'}</div>
+          <div className="auth-sub">{mode === 'login' ? 'Connectez-vous à votre espace SkillBadge.' : 'Rejoignez le réseau des compétences certifiées.'}</div>
+ 
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'#6B6860',marginBottom:8}}>Je suis un</div>
+            <div className="role-selector">
+              {roles.map(r => (
+                <div key={r.id} className={`role-opt${role===r.id?' selected':''}`} onClick={() => setRole(r.id)}>
+                  <div className="role-opt-label">{r.label}</div>
+                  <div style={{fontSize:9,color:'#6B6860',marginTop:1}}>{r.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+ 
+          {error && <div className="alert alert-error">{error}</div>}
+ 
+          {mode === 'register' && (
+            <div className="grid-2" style={{gap:12,marginBottom:0}}>
+              <div className="field"><label>Prénom *</label><input value={form.prenom} onChange={e=>set('prenom',e.target.value)} placeholder="Salimata" /></div>
+              <div className="field"><label>Nom *</label><input value={form.nom} onChange={e=>set('nom',e.target.value)} placeholder="Ouédraogo" /></div>
+            </div>
+          )}
+ 
+          <div className="field"><label>Email *</label><input type="email" value={form.email} onChange={e=>set('email',e.target.value)} placeholder="vous@exemple.bf" /></div>
+          <div className="field"><label>Mot de passe *</label><input type="password" value={form.password} onChange={e=>set('password',e.target.value)} placeholder="••••••••" /></div>
+ 
+          {mode === 'register' && (
+            <>
+              <div className="field"><label>Ville</label><input value={form.ville} onChange={e=>set('ville',e.target.value)} placeholder="Ouagadougou" /></div>
+              {role === 'recruteur' && <div className="field"><label>Entreprise</label><input value={form.entreprise} onChange={e=>set('entreprise',e.target.value)} placeholder="Tech BF SARL" /></div>}
+              {role === 'formateur' && <>
+                <div className="field"><label>Établissement</label><input value={form.etablissement} onChange={e=>set('etablissement',e.target.value)} placeholder="École Numérique BF" /></div>
+                <div className="field"><label>Domaine principal</label>
+                  <select value={form.domaine} onChange={e=>set('domaine',e.target.value)}>
+                    <option value="">Sélectionner...</option>
+                    {DOMAINES.map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+              </>}
+            </>
+          )}
+ 
+          {(role === 'formateur') && (
+            <div className="field"><label>Code formateur *</label><input value={form.code} onChange={e=>set('code',e.target.value)} placeholder="FORM-2026-XX" /></div>
+          )}
+ 
+          <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={mode==='login'?handleLogin:handleRegister} disabled={loading}>
+            {loading ? 'Chargement...' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+          </button>
+ 
+          {mode === 'login' && (
+            <div style={{marginTop:16,padding:12,background:'#F7F7F5',borderRadius:9,fontSize:12,color:'#6B6860'}}>
+              <strong>Comptes démo :</strong><br/>
+              Salimata (apprenant) : salimata@skillbadge.bf / pass123<br/>
+              Sarah (recruteur) : sarah@tech.bf / pass123<br/>
+              Marcus (formateur) : marcus@ecole.bf / pass123 + FORM-2026-X9
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// BADGE CARD (clickable, expandable)
+// ═══════════════════════════════════════════════════
+const BadgeCard = ({ badge, showProject = false }) => {
+  const [expanded, setExpanded] = useState(false);
+  const projet = showProject && badge.projetId
+    ? (LS.get('sb_projets') || []).find(p => p.id === badge.projetId)
+    : null;
+ 
+  return (
+    <div className="badge-card fade-up" onClick={() => setExpanded(!expanded)} style={{userSelect:'none', ...(badge.type==='terrain' ? {borderColor:'#D97706', background:'linear-gradient(to bottom, #FFFBEB, #fff)'} : {})}}>
+      {badge.type === 'terrain' && <div style={{position:'absolute',top:10,left:10,background:'#92400E',color:'#FEF3C7',fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:4,letterSpacing:'.04em'}}>🏭 TERRAIN</div>}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4, ...(badge.type==='terrain' ? {marginTop:18} : {})}}>
+        <div className="badge-title">{badge.titre}</div>
+        <div style={{display:'flex',gap:6,alignItems:'center'}}>
+          <span className={niveauPill(badge.niveau)}>{badge.niveau}</span>
+          <span style={{fontSize:12,color:'#6B6860',transition:'.2s',transform:expanded?'rotate(180deg)':'none',display:'inline-block'}}>▾</span>
+        </div>
+      </div>
+      <div className="badge-domain">{badge.domaine}</div>
+      {badge.score && (
+        <div style={{marginBottom:10}}>
+          <div className="prog-bar">
+            <div className="prog-fill" style={{width:`${badge.score}%`}} />
+          </div>
+          <div style={{fontSize:10,color:'#6B6860',marginTop:3}}>Score : {badge.score}/100</div>
+        </div>
+      )}
+      <div className="badge-meta">
+        <span>Token : <span className="badge-hash">{badge.tokenId}</span></span>
+        <span>Hash : <span className="badge-hash">{badge.hash}</span></span>
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+          <span className="badge-verified">✓ Vérifié on-chain</span>
+          <span style={{color:'#6B6860'}}>{fmtDate(badge.date)}</span>
+        </div>
+      </div>
+ 
+      {expanded && (
+        <div className="badge-expand" onClick={e=>e.stopPropagation()}>
+          {badge.type === 'terrain' && (
+            <div style={{background:'linear-gradient(135deg,#92400E,#78350F)',color:'#FEF3C7',borderRadius:8,padding:'8px 12px',marginBottom:10,fontSize:12}}>
+              🏭 <strong>Badge Terrain</strong> · Expérience certifiée en entreprise
+              {badge.entreprise && <div style={{fontSize:11,marginTop:2,opacity:.8}}>Entreprise : {badge.entreprise}</div>}
+              {badge.poste && <div style={{fontSize:11,marginTop:2,opacity:.8}}>Poste : {badge.poste}</div>}
+              {badge.duree && <div style={{fontSize:11,marginTop:2,opacity:.8}}>Durée : {badge.duree}</div>}
+            </div>
+          )}
+          {projet ? (
+            <>
+              <div style={{fontWeight:700,fontSize:12,marginBottom:8,color:'#6B6860',textTransform:'uppercase',letterSpacing:'.06em'}}>Projet associé</div>
+              <div style={{fontWeight:700,fontSize:14,marginBottom:4}}>{projet.titre}</div>
+              <div style={{fontSize:13,color:'#2A2A2A',lineHeight:1.6,marginBottom:6}}>{projet.resume}</div>
+              {projet.notions && <div style={{fontFamily:'var(--mono)',fontSize:11,color:'#6B6860',marginBottom:6}}>{projet.notions}</div>}
+              <a href={`https://${projet.lien}`} target="_blank" rel="noopener noreferrer"
+                style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--blue)',textDecoration:'none'}} onClick={e=>e.stopPropagation()}>
+                🔗 {projet.lien}
+              </a>
+            </>
+          ) : (
+            <div style={{fontSize:12,color:'#6B6860',fontStyle:'italic'}}>
+              {badge.projetId ? 'Détails du projet non disponibles.' : badge.type === 'terrain' ? '' : 'Aucun projet associé à ce badge.'}
+            </div>
+          )}
+          {badge.commentaire && (
+            <div style={{marginTop:10,background:'var(--gold-light)',border:'1px solid var(--gold)',borderRadius:8,padding:'8px 12px'}}>
+              <div style={{fontSize:10,fontWeight:700,color:'var(--gold-dark)',marginBottom:3}}>💬 Commentaire du formateur</div>
+              <div style={{fontSize:12,color:'var(--ink2)'}}>{badge.commentaire}</div>
+            </div>
+          )}
+          <div style={{marginTop:8,fontSize:11,color:'#6B6860'}}>
+            {badge.type === 'terrain' ? `Certifié par ${badge.formateurNom || 'Recruteur'}` : `Émis par formateur`} · {fmtDate(badge.date)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE PORTFOLIO (APPRENANT)
+// ═══════════════════════════════════════════════════
+const PagePortfolio = ({ user, showToast }) => {
+  const [tab, setTab] = useState('badges');
+  const [projForm, setProjForm] = useState({ titre:'', resume:'', notions:'', lien:'' });
+  const [submitted, setSubmitted] = useState(false);
+ 
+  const badges = (LS.get('sb_badges') || []).filter(b => b.apprenantId === user.id);
+  const projets = (LS.get('sb_projets') || []).filter(p => p.apprenantId === user.id);
+  const myNotifs = (LS.get('sb_notifs') || []).filter(n => n.toUserId === user.id && !n.read);
+  const myOffers = (LS.get('sb_offers') || []).filter(o => o.apprenantId === user.id);
+  const myComments = (LS.get('sb_comments') || []).filter(c => c.apprenantId === user.id);
+ 
+  useEffect(() => {
+    const all = LS.get('sb_notifs') || [];
+    const updated = all.map(n => n.toUserId === user.id ? { ...n, read: true } : n);
+    LS.set('sb_notifs', updated);
+  }, [user.id]);
+ 
+  const handleSubmitProjet = () => {
+    if (!projForm.titre || !projForm.resume || !projForm.lien) { showToast('Veuillez remplir les champs obligatoires.'); return; }
+    const newProj = {
+      id: genId('PRJ'),
+      apprenantId: user.id,
+      apprenantNom: `${user.prenom} ${user.nom}`,
+      ...projForm,
+      statut: 'en_attente',
+      badgeId: null,
+      createdAt: dateNow(),
+    };
+    LS.push('sb_projets', newProj);
+    const formateurs = (LS.get('sb_users') || []).filter(u => u.role === 'formateur');
+    formateurs.forEach(f => {
+      LS.push('sb_notifs', {
+        id: genId('NTF'),
+        toUserId: f.id,
+        type: 'new_projet',
+        msg: `Nouveau projet soumis par ${user.prenom} ${user.nom} : "${newProj.titre}"`,
+        read: false,
+        createdAt: dateNow(),
+      });
+    });
+    setProjForm({ titre:'', resume:'', notions:'', lien:'' });
+    setSubmitted(true);
+    showToast('Projet soumis avec succès ! En attente de validation.');
+    setTimeout(() => setSubmitted(false), 4000);
+  };
+ 
+  const setP = (k, v) => setProjForm(f => ({ ...f, [k]: v }));
+  const score = badges.length * 150 + badges.filter(b=>b.niveau==='EXPERT').length * 100 + badges.filter(b=>b.niveau==='INTERMÉDIAIRE').length * 50;
+ 
+  return (
+    <div className="page fade-up">
+      <div style={{display:'flex',gap:20,alignItems:'flex-start',marginBottom:28,flexWrap:'wrap'}}>
+        <Avatar prenom={user.prenom} nom={user.nom} size={68} photo={user.photo} />
+        <div style={{flex:1}}>
+          <div style={{fontFamily:'var(--serif)',fontSize:28,fontWeight:900,lineHeight:1.1}}>{user.prenom} {user.nom}</div>
+          {user.ville && <div style={{fontSize:13,color:'#6B6860',marginTop:2}}>{user.ville}</div>}
+          <div style={{fontSize:11,fontFamily:'var(--mono)',color:'#6B6860',marginTop:4}}>{user.wallet || '—'}</div>
+          <div style={{display:'flex',gap:8,marginTop:10,flexWrap:'wrap'}}>
+            <div className="chain-badge"><div className="chain-dot"/><span className="chain-label">{badges.length} BADGES</span></div>
+            {myNotifs.length > 0 && <div style={{background:'#FEF3C7',border:'1px solid #F59E0B',borderRadius:20,padding:'4px 10px',fontSize:11,fontWeight:700,color:'#92400E'}}>{myNotifs.length} nouvelle(s) notification(s)</div>}
+          </div>
+          {/* Show recruiter ID */}
+          <div style={{marginTop:12}}>
+            <div style={{fontSize:11,color:'#6B6860',marginBottom:4}}>Votre ID recruteur (partagez cet ID pour vérification) :</div>
+            <div className="id-chip">🔑 {user.recruteurId || 'N/A'}</div>
+          </div>
+        </div>
+        <ScoreRing score={score} size={76} />
+      </div>
+ 
+      {myNotifs.length > 0 && (
+        <div className="alert alert-info" style={{marginBottom:20}}>
+          {myNotifs.map(n => <div key={n.id}>{n.msg}</div>)}
+        </div>
+      )}
+ 
+      {myOffers.length > 0 && (
+        <div className="card card-p" style={{marginBottom:20}}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>Offres d'opportunités reçues ({myOffers.length})</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {myOffers.map(o => (
+              <div key={o.id} className="offer-card">
+                <div className="offer-title">{o.titre}</div>
+                <div className="offer-from">{o.recruteurNom} · {o.entreprise} · {fmtDate(o.createdAt)}</div>
+                {o.message && <div style={{fontSize:12,marginTop:6,color:'#0D0D0D'}}>{o.message}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+ 
+      {/* Comments from formateurs */}
+      {myComments.length > 0 && (
+        <div className="card card-p" style={{marginBottom:20}}>
+          <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>💬 Commentaires de formateurs ({myComments.length})</div>
+          {myComments.map(c => (
+            <div key={c.id} className="comment">
+              <div className="comment-author">{c.formateurNom}</div>
+              <div className="comment-text">{c.texte}</div>
+              <div className="comment-date">sur « {c.projetTitre} » · {fmtDate(c.createdAt)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+ 
+      <div className="grid-3" style={{marginBottom:24,gap:12}}>
+        {[
+          {num:badges.length, label:'Badges certifiés', trend:'+1 ce mois'},
+          {num:projets.filter(p=>p.statut==='validé').length, label:'Projets validés', trend:''},
+          {num:projets.filter(p=>p.statut==='en_attente').length, label:'En attente', trend:''},
+        ].map((s,i) => (
+          <div key={i} className="stat-card">
+            <div className="stat-num">{s.num}</div>
+            <div className="stat-label">{s.label}</div>
+            {s.trend && <div className="stat-trend">{s.trend}</div>}
+          </div>
+        ))}
+      </div>
+ 
+      <div className="tabs">
+        <button className={`tab${tab==='badges'?' active':''}`} onClick={()=>setTab('badges')}>Mes badges ({badges.length})</button>
+        <button className={`tab${tab==='projets'?' active':''}`} onClick={()=>setTab('projets')}>Mes projets ({projets.length})</button>
+        <button className={`tab${tab==='soumettre'?' active':''}`} onClick={()=>setTab('soumettre')}>Soumettre un projet</button>
+      </div>
+      {tab === 'badges' && (
+        badges.length === 0
+          ? <div className="empty"><div className="empty-icon">◈</div><div className="empty-text">Aucun badge encore. Cliquez sur un badge pour voir le projet associé.</div></div>
+          : <div className="grid-auto">{badges.map(b => <BadgeCard key={b.id} badge={b} showProject={true} />)}</div>
+      )}
+ 
+      {tab === 'projets' && (
+        projets.length === 0
+          ? <div className="empty"><div className="empty-icon">◈</div><div className="empty-text">Aucun projet soumis.</div></div>
+          : <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              {projets.map(p => {
+                const projComments = (LS.get('sb_comments') || []).filter(c => c.projetId === p.id);
+                return (
+                  <div key={p.id} className="card card-p" style={{display:'flex',gap:14,alignItems:'flex-start',flexDirection:'column'}}>
+                    <div style={{display:'flex',gap:14,alignItems:'flex-start',width:'100%'}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>{p.titre}</div>
+                        <div style={{fontSize:12,color:'#6B6860',marginBottom:6}}>{p.resume}</div>
+                        {p.notions && <div style={{fontSize:11,color:'#6B6860',fontFamily:'var(--mono)'}}>{p.notions}</div>}
+                        <div style={{fontSize:11,color:'var(--blue)',marginTop:4}}>{p.lien}</div>
+                        <div style={{fontSize:11,color:'#6B6860',marginTop:4}}>Soumis le {fmtDate(p.createdAt)}</div>
+                        {p.rejetMsg && <div style={{fontSize:12,color:'var(--red)',marginTop:6,background:'var(--red-light)',padding:'6px 10px',borderRadius:6}}>Motif de refus : {p.rejetMsg}</div>}
+                      </div>
+                      <span className={`pill ${p.statut==='validé'?'pill-valid':p.statut==='rejeté'?'pill-reject':'pill-pending'}`}>
+                        {p.statut === 'validé' ? 'Validé' : p.statut === 'rejeté' ? 'Refusé' : 'En attente'}
+                      </span>
+                    </div>
+                    {projComments.length > 0 && (
+                      <div style={{width:'100%'}}>
+                        <div style={{fontSize:11,fontWeight:700,color:'#6B6860',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:6}}>Commentaires ({projComments.length})</div>
+                        {projComments.map(c => (
+                          <div key={c.id} className="comment">
+                            <div className="comment-author">{c.formateurNom}</div>
+                            <div className="comment-text">{c.texte}</div>
+                            <div className="comment-date">{fmtDate(c.createdAt)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+      )}
+ 
+      {tab === 'soumettre' && (
+        <div className="card card-p" style={{maxWidth:600}}>
+          <div style={{fontWeight:700,fontSize:16,marginBottom:16}}>Soumettre un nouveau projet</div>
+          {submitted && <div className="alert alert-success">Projet soumis ! Le formateur sera notifié.</div>}
+          <div className="field"><label>Titre du projet *</label><input value={projForm.titre} onChange={e=>setP('titre',e.target.value)} placeholder="Ex: Application mobile de paiement" /></div>
+          <div className="field"><label>Description *</label><textarea value={projForm.resume} onChange={e=>setP('resume',e.target.value)} placeholder="Décrivez votre projet..." /></div>
+          <div className="field"><label>Technologies utilisées</label><input value={projForm.notions} onChange={e=>setP('notions',e.target.value)} placeholder="React, Node.js, MongoDB..." /></div>
+          <div className="field"><label>Lien GitHub / Démo *</label><input value={projForm.lien} onChange={e=>setP('lien',e.target.value)} placeholder="github.com/vous/projet" /></div>
+          <button className="btn btn-gold" onClick={handleSubmitProjet}>Soumettre le projet</button>
+        </div>
+      )}
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE DASHBOARD FORMATEUR
+// ═══════════════════════════════════════════════════
+const PageDashboard = ({ user }) => {
+  const badges = (LS.get('sb_badges') || []).filter(b => b.formateurId === user.id);
+  const projets = LS.get('sb_projets') || [];
+  const pending = projets.filter(p => p.statut === 'en_attente');
+  const users = LS.get('sb_users') || [];
+  const apprenants = users.filter(u => u.role === 'apprenant');
+  const domaineStats = badges.reduce((acc, b) => { acc[b.domaine] = (acc[b.domaine] || 0) + 1; return acc; }, {});
+ 
+  return (
+    <div className="page fade-up">
+      <div className="page-title">Tableau de bord</div>
+      <div className="page-sub">{user.etablissement || 'Formateur'} · {user.domaine || ''}</div>
+ 
+      <div className="grid-3" style={{marginBottom:24,gap:12}}>
+        {[
+          {num:badges.length, label:'Badges émis', trend:'Total'},
+          {num:pending.length, label:'Projets en attente', trend:'À valider'},
+          {num:apprenants.length, label:'Apprenants', trend:'Inscrits'},
+        ].map((s,i) => (
+          <div key={i} className="stat-card">
+            <div className="stat-num">{s.num}</div>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-trend">{s.trend}</div>
+          </div>
+        ))}
+      </div>
+ 
+      <div className="grid-2" style={{gap:20}}>
+        <div className="card">
+          <div className="card-header">Badges par domaine</div>
+          <div style={{padding:20}}>
+            {Object.entries(domaineStats).length === 0
+              ? <div className="empty"><div className="empty-text">Aucun badge émis</div></div>
+              : Object.entries(domaineStats).map(([d,n]) => (
+                <div key={d} style={{marginBottom:14}}>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:5}}>
+                    <span style={{fontWeight:600}}>{d}</span>
+                    <span style={{color:'var(--gold-dark)',fontWeight:700}}>{n}</span>
+                  </div>
+                  <div className="prog-bar"><div className="prog-fill" style={{width:`${(n/badges.length)*100}%`}} /></div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header">Projets en attente <span style={{background:'var(--red-light)',color:'var(--red)',borderRadius:10,fontSize:11,padding:'1px 8px'}}>{pending.length}</span></div>
+          <div style={{padding:16}}>
+            {pending.length === 0
+              ? <div className="empty"><div className="empty-text">Aucun projet en attente</div></div>
+              : pending.slice(0,3).map(p => {
+                  const apprenant = users.find(u => u.id === p.apprenantId);
+                  return (
+                    <div key={p.id} style={{padding:'10px 0',borderBottom:'1px solid var(--sand2)',display:'flex',gap:10,alignItems:'center'}}>
+                      <div style={{width:32,height:32,borderRadius:7,background:'var(--sand2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>📁</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:13,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.titre}</div>
+                        <div style={{fontSize:11,color:'#6B6860',fontFamily:'var(--mono)'}}>{apprenant?.recruteurId || '—'} · {fmtDate(p.createdAt)}</div>
+                      </div>
+                    </div>
+                  );
+                })
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE VALIDATION FORMATEUR (avec commentaires)
+// ═══════════════════════════════════════════════════
+const PageValidation = ({ user, showToast }) => {
+  const [badgeForm, setBadgeForm] = useState({ titre:'', niveau:'DÉBUTANT', domaine:'', score:75, commentaire:'' });
+  const [selectedProj, setSelectedProj] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+  const [rejMsg, setRejMsg] = useState('');
+  const [rejProj, setRejProj] = useState(null);
+  const [commentProj, setCommentProj] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [expandedProj, setExpandedProj] = useState(null);
+ 
+  const projets = (LS.get('sb_projets') || []).filter(p => p.statut === 'en_attente');
+  const users = LS.get('sb_users') || [];
+  const setB = (k, v) => setBadgeForm(f => ({ ...f, [k]: v }));
+ 
+  const handleValidate = (projetId) => {
+    if (!badgeForm.titre || !badgeForm.domaine) { showToast('Remplissez le titre et le domaine du badge.'); return; }
+    const proj = (LS.get('sb_projets') || []).find(p => p.id === projetId);
+    if (!proj) return;
+ 
+    const newBadge = {
+      id: genId('BDG'),
+      titre: badgeForm.titre,
+      niveau: badgeForm.niveau,
+      domaine: badgeForm.domaine,
+      score: parseInt(badgeForm.score),
+      commentaire: badgeForm.commentaire,
+      apprenantId: proj.apprenantId,
+      formateurId: user.id,
+      formateurNom: `${user.prenom} ${user.nom}`,
+      date: dateNow(),
+      hash: genHash(),
+      tokenId: 'SKB-' + Math.floor(10000+Math.random()*90000),
+      projetId: proj.id,
+    };
+    LS.push('sb_badges', newBadge);
+    LS.update('sb_projets', projetId, { statut: 'validé', badgeId: newBadge.id });
+ 
+    const allUsers = LS.get('sb_users') || [];
+    const apprenant = allUsers.find(u => u.id === proj.apprenantId);
+    if (apprenant) {
+      const bonus = badgeForm.niveau === 'EXPERT' ? 250 : badgeForm.niveau === 'INTERMÉDIAIRE' ? 150 : 80;
+      LS.update('sb_users', proj.apprenantId, { score: (apprenant.score || 0) + bonus });
+    }
+ 
+    LS.push('sb_notifs', {
+      id: genId('NTF'),
+      toUserId: proj.apprenantId,
+      type: 'badge_awarded',
+      msg: `🎖️ Félicitations ! Le badge "${newBadge.titre}" (${newBadge.niveau}) a été attribué à votre projet "${proj.titre}".${badgeForm.commentaire ? ' Commentaire : ' + badgeForm.commentaire : ''}`,
+      badgeId: newBadge.id,
+      read: false,
+      createdAt: dateNow(),
+    });
+ 
+    setBadgeForm({ titre:'', niveau:'DÉBUTANT', domaine:'', score:75, commentaire:'' });
+    setSelectedProj(null);
+    showToast(`Badge "${newBadge.titre}" émis sur la blockchain !`);
+    setRefresh(r => r+1);
+  };
+ 
+  const handleReject = (projetId) => {
+    LS.update('sb_projets', projetId, { statut: 'rejeté', rejetMsg: rejMsg });
+    const proj = (LS.get('sb_projets') || []).find(p => p.id === projetId);
+    if (proj) {
+      LS.push('sb_notifs', {
+        id: genId('NTF'),
+        toUserId: proj.apprenantId,
+        type: 'projet_rejected',
+        msg: `Votre projet "${proj.titre}" a été refusé. ${rejMsg ? 'Raison : ' + rejMsg : ''}`,
+        read: false,
+        createdAt: dateNow(),
+      });
+    }
+    setRejProj(null); setRejMsg('');
+    showToast('Projet refusé, apprenant notifié.');
+    setRefresh(r => r+1);
+  };
+ 
+  const handleComment = (proj) => {
+    if (!commentText.trim()) { showToast('Le commentaire ne peut pas être vide.'); return; }
+    const newComment = {
+      id: genId('CMT'),
+      projetId: proj.id,
+      projetTitre: proj.titre,
+      apprenantId: proj.apprenantId,
+      formateurId: user.id,
+      formateurNom: `${user.prenom} ${user.nom}`,
+      texte: commentText.trim(),
+      createdAt: dateNow(),
+    };
+    LS.push('sb_comments', newComment);
+    LS.push('sb_notifs', {
+      id: genId('NTF'),
+      toUserId: proj.apprenantId,
+      type: 'comment',
+      msg: `${user.prenom} ${user.nom} a commenté votre projet "${proj.titre}"`,
+      read: false,
+      createdAt: dateNow(),
+    });
+    setCommentProj(null); setCommentText('');
+    showToast('Commentaire envoyé à l\'apprenant !');
+  };
+ 
+  return (
+    <div className="page fade-up">
+      <div className="page-title">Projets à valider</div>
+      <div className="page-sub">Évaluez les projets soumis, émettez des badges, et laissez des commentaires.</div>
+ 
+      {projets.length === 0
+        ? <div className="empty card card-p" style={{textAlign:'center',padding:48}}><div className="empty-icon">◈</div><div className="empty-text">Aucun projet en attente de validation.</div></div>
+        : projets.map(p => {
+            const apprenant = users.find(u => u.id === p.apprenantId);
+            const isSelected = selectedProj === p.id;
+            const isExpanded = expandedProj === p.id;
+            const existingComments = (LS.get('sb_comments') || []).filter(c => c.projetId === p.id);
+            return (
+              <div key={p.id} className="card" style={{marginBottom:16}}>
+                <div style={{padding:'20px 24px'}}>
+                  <div style={{display:'flex',gap:14,alignItems:'flex-start',marginBottom:12}}>
+                    <div style={{width:44,height:44,borderRadius:10,background:'var(--sand2)',border:'1.5px solid var(--sand3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>📁</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>{p.titre}</div>
+                      <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'var(--ink)',color:'var(--gold)',fontFamily:'var(--mono)',fontSize:12,fontWeight:700,padding:'4px 10px',borderRadius:7}}>
+                        🔑 {apprenant?.recruteurId || '—'}
+                      </div>
+                      <div style={{fontSize:11,color:'#6B6860',marginTop:4}}>Soumis le {fmtDate(p.createdAt)}</div>
+                    </div>
+                    <span className="pill pill-pending">En attente</span>
+                  </div>
+ 
+                  {/* Bouton pour voir/cacher les détails */}
+                  <button className="btn btn-outline btn-sm" style={{marginBottom: isExpanded ? 12 : 0, width:'100%', justifyContent:'center'}}
+                    onClick={() => setExpandedProj(isExpanded ? null : p.id)}>
+                    {isExpanded ? '▲ Masquer les détails' : '▼ Voir le projet complet'}
+                  </button>
+ 
+                  {/* Détails complets */}
+                  {isExpanded && (
+                    <div>
+                      <div style={{fontSize:13,color:'#2A2A2A',lineHeight:1.6,marginBottom:10}}>{p.resume}</div>
+                      {p.notions && <div style={{fontFamily:'var(--mono)',fontSize:11,color:'#6B6860',marginBottom:8,background:'var(--sand)',padding:'6px 10px',borderRadius:6}}>🔧 {p.notions}</div>}
+                      <a href={`https://${p.lien}`} target="_blank" rel="noopener noreferrer"
+                        style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--blue)',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4,padding:'6px 10px',background:'var(--blue-light)',borderRadius:6,marginBottom:14}}>
+                        🔗 {p.lien}
+                      </a>
+ 
+                      {existingComments.length > 0 && (
+                        <div style={{marginBottom:14}}>
+                          <div style={{fontSize:11,fontWeight:700,color:'#6B6860',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:6}}>Commentaires précédents ({existingComments.length})</div>
+                          {existingComments.map(c => (
+                            <div key={c.id} className="comment">
+                              <div className="comment-author">{c.formateurNom}</div>
+                              <div className="comment-text">{c.texte}</div>
+                              <div className="comment-date">{fmtDate(c.createdAt)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+ 
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                        <button className="btn btn-gold btn-sm" onClick={() => { setSelectedProj(isSelected ? null : p.id); setRejProj(null); setCommentProj(null); }}>
+                          {isSelected ? '✕ Fermer' : '🎖️ Attribuer un badge'}
+                        </button>
+                        <button className="btn btn-sm" style={{background:'var(--red)',color:'white'}} onClick={() => { setRejProj(rejProj===p.id?null:p.id); setSelectedProj(null); setCommentProj(null); }}>✕ Refuser</button>
+                        <button className="btn btn-purple btn-sm" onClick={() => { setCommentProj(commentProj===p.id?null:p.id); setSelectedProj(null); setRejProj(null); }}>
+                          💬 Commenter
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+ 
+                {/* Badge emission */}
+                {isSelected && (
+                  <div style={{padding:'20px 24px',borderTop:'1px solid var(--sand2)',background:'var(--sand)'}}>
+                    <div style={{fontWeight:700,fontSize:14,marginBottom:14}}>🎖️ Définir le badge à émettre</div>
+                    <div className="grid-2" style={{gap:12}}>
+                      <div className="field"><label>Titre du badge *</label><input value={badgeForm.titre} onChange={e=>setB('titre',e.target.value)} placeholder="Ex: React.js Avancé" /></div>
+                      <div className="field"><label>Domaine *</label>
+                        <select value={badgeForm.domaine} onChange={e=>setB('domaine',e.target.value)}>
+                          <option value="">Sélectionner...</option>
+                          {DOMAINES.map(d => <option key={d}>{d}</option>)}
+                        </select>
+                      </div>
+                      <div className="field"><label>Niveau</label>
+                        <select value={badgeForm.niveau} onChange={e=>setB('niveau',e.target.value)}>
+                          {NIVEAUX.map(n => <option key={n}>{n}</option>)}
+                        </select>
+                      </div>
+                      <div className="field">
+                        <label>Score ({badgeForm.score}/100)</label>
+                        <input type="range" min={0} max={100} value={badgeForm.score} onChange={e=>setB('score',e.target.value)} style={{width:'100%',marginTop:8}} />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label>Commentaire pour l'apprenant (recommandé)</label>
+                      <textarea value={badgeForm.commentaire} onChange={e=>setB('commentaire',e.target.value)} placeholder="Ex: Excellent travail ! Architecture solide et code bien documenté. Continuez dans cette voie..." rows={3} />
+                    </div>
+                    <button className="btn btn-primary" onClick={() => handleValidate(p.id)}>Émettre le badge sur la blockchain</button>
+                  </div>
+                )}
+ 
+                {/* Comment panel */}
+                {commentProj === p.id && (
+                  <div style={{padding:'16px 24px',borderTop:'1px solid var(--sand2)',background:'var(--purple-light)'}}>
+                    <div style={{fontWeight:600,fontSize:13,marginBottom:10,color:'var(--purple)'}}>💬 Laisser un commentaire sur ce projet</div>
+                    <div className="field">
+                      <textarea value={commentText} onChange={e=>setCommentText(e.target.value)} placeholder="Ex: Bonne architecture, mais améliorez la documentation..." rows={3} />
+                    </div>
+                    <div style={{display:'flex',gap:8}}>
+                      <button className="btn btn-purple btn-sm" onClick={() => handleComment(p)}>Envoyer le commentaire</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => { setCommentProj(null); setCommentText(''); }}>Annuler</button>
+                    </div>
+                  </div>
+                )}
+ 
+                {/* Reject modal */}
+                {rejProj === p.id && (
+                  <div style={{padding:'16px 24px',borderTop:'1px solid var(--sand2)',background:'#FEF2F2'}}>
+                    <div style={{fontWeight:600,fontSize:13,marginBottom:10,color:'var(--red)'}}>Motif du refus (optionnel)</div>
+                    <div className="field"><textarea value={rejMsg} onChange={e=>setRejMsg(e.target.value)} placeholder="Ex: Le projet manque de documentation..." rows={2} /></div>
+                    <div style={{display:'flex',gap:8}}>
+                      <button className="btn btn-red btn-sm" onClick={() => handleReject(p.id)}>Confirmer le refus</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => setRejProj(null)}>Annuler</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+      }
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE HISTORIQUE FORMATEUR
+// ═══════════════════════════════════════════════════
+const PageHistorique = ({ user }) => {
+  const badges = (LS.get('sb_badges') || []).filter(b => b.formateurId === user.id);
+  const users = LS.get('sb_users') || [];
+ 
+  return (
+    <div className="page fade-up">
+      <div className="page-title">Historique des validations</div>
+      <div className="page-sub">Toutes vos transactions on-chain sur le réseau Polygon.</div>
+      <div className="card">
+        <div className="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Date</th><th>Apprenant</th><th>Badge</th><th>Niveau</th><th>Hash TX</th><th>Statut</th>
+            </tr></thead>
+            <tbody>
+              {badges.length === 0
+                ? <tr><td colSpan={6} style={{textAlign:'center',color:'#6B6860',padding:32}}>Aucune validation encore.</td></tr>
+                : badges.map(b => {
+                    const apprenant = users.find(u => u.id === b.apprenantId);
+                    return (
+                      <tr key={b.id}>
+                        <td style={{color:'#6B6860',whiteSpace:'nowrap'}}>{fmtDate(b.date)}</td>
+                        <td>
+                          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                            <Avatar prenom={apprenant?.prenom||'?'} nom={apprenant?.nom||'?'} size={28} photo={apprenant?.photo} />
+                            <span style={{fontWeight:600}}>{apprenant?.prenom} {apprenant?.nom}</span>
+                          </div>
+                        </td>
+                        <td>{b.titre}</td>
+                        <td><span className={niveauPill(b.niveau)}>{b.niveau}</span></td>
+                        <td style={{fontFamily:'var(--mono)',color:'var(--blue)',fontSize:11}}>{b.hash}</td>
+                        <td><span className="pill pill-valid">Confirmé</span></td>
+                      </tr>
+                    );
+                  })
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE VÉRIFICATION RECRUTEUR (par ID uniquement)
+// ═══════════════════════════════════════════════════
+const PageVerification = ({ user }) => {
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+ 
+  const handleSearch = () => {
+    if (!query.trim()) return;
+    setLoading(true); setResult(null); setNotFound(false);
+    setTimeout(() => {
+      const users = LS.get('sb_users') || [];
+      // Recruteur searches ONLY by recruteurId
+      const found = users.find(u =>
+        u.role === 'apprenant' && u.recruteurId && u.recruteurId === query.trim()
+      );
+      if (found) {
+        const badges = (LS.get('sb_badges') || []).filter(b => b.apprenantId === found.id);
+        const projets = (LS.get('sb_projets') || []).filter(p => p.apprenantId === found.id && p.statut === 'validé');
+        setResult({ user: found, badges, projets });
+      } else {
+        setNotFound(true);
+      }
+      setLoading(false);
+    }, 1200);
+  };
+ 
+  return (
+    <div className="page fade-up page-sm">
+      <div className="page-title">Vérification de portfolio</div>
+      <div className="page-sub">Entrez l'ID unique du candidat pour accéder à son portfolio certifié.</div>
+ 
+      <div className="card card-p" style={{marginBottom:20}}>
+        <div style={{marginBottom:12,padding:12,background:'var(--gold-light)',borderRadius:9,fontSize:12,color:'var(--gold-dark)',border:'1px solid var(--gold)'}}>
+          🔑 <strong>Accès sécurisé par ID :</strong> Le candidat vous communique son ID personnel. Vous ne pouvez pas rechercher par nom ou email.
+        </div>
+        <div style={{display:'flex',gap:10}}>
+          <div style={{flex:1}}>
+            <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSearch()}
+              placeholder="ID du candidat ex: X670&gm"
+              style={{width:'100%',padding:'12px 16px',border:'1.5px solid var(--sand3)',borderRadius:9,fontSize:14,fontFamily:'var(--mono)',outline:'none'}}
+              onFocus={e=>e.target.style.borderColor='var(--gold)'}
+              onBlur={e=>e.target.style.borderColor='var(--sand3)'}
+            />
+          </div>
+          <button className="btn btn-primary" onClick={handleSearch}>Vérifier</button>
+        </div>
+        <div style={{marginTop:10,fontSize:11,color:'#6B6860'}}>Essayez : <span style={{fontFamily:'var(--mono)',fontWeight:600}}>X670&gm</span> (ID de Salimata Ouédraogo)</div>
+      </div>
+ 
+      {loading && (
+        <div style={{textAlign:'center',padding:48,color:'#6B6860'}}>
+          <div style={{width:36,height:36,border:'3px solid var(--gold)',borderTopColor:'transparent',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto 12px'}} />
+          <div style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--green)'}}>Interrogation Polygon...</div>
+        </div>
+      )}
+ 
+      {notFound && <div className="alert alert-error">Aucun profil trouvé pour cet ID. Vérifiez l'ID communiqué par le candidat.</div>}
+ 
+      {result && (
+        <div className="fade-up">
+          <div className="card card-p" style={{marginBottom:16}}>
+            <div style={{display:'flex',gap:14,alignItems:'center',marginBottom:16}}>
+              <Avatar prenom={result.user.prenom} nom={result.user.nom} size={56} photo={result.user.photo} />
+              <div>
+                <div style={{fontFamily:'var(--serif)',fontWeight:900,fontSize:22}}>{result.user.prenom} {result.user.nom}</div>
+                <div style={{fontSize:12,color:'#6B6860'}}>{result.user.ville || 'Burkina Faso'}</div>
+                <div style={{fontFamily:'var(--mono)',fontSize:11,color:'#6B6860'}}>{result.user.wallet || '—'}</div>
+              </div>
+              <div style={{marginLeft:'auto',textAlign:'right'}}>
+                <div style={{fontFamily:'var(--serif)',fontWeight:900,fontSize:28}}>{result.badges.length}</div>
+                <div style={{fontSize:11,color:'#6B6860'}}>badges certifiés</div>
+              </div>
+            </div>
+            <div className="chain-badge">
+              <div className="chain-dot"/><span className="chain-label">Vérifié on-chain · Polygon Mainnet</span>
+            </div>
+          </div>
+ 
+          {result.projets.length > 0 && (
+            <div className="card card-p" style={{marginBottom:16}}>
+              <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>Projets validés ({result.projets.length})</div>
+              {result.projets.map(p => (
+                <div key={p.id} style={{borderBottom:'1px solid var(--sand2)',paddingBottom:12,marginBottom:12}}>
+                  <div style={{fontWeight:700,fontSize:13,marginBottom:3}}>{p.titre}</div>
+                  <div style={{fontSize:12,color:'#2A2A2A',marginBottom:4}}>{p.resume}</div>
+                  {p.notions && <div style={{fontFamily:'var(--mono)',fontSize:11,color:'#6B6860',marginBottom:4}}>{p.notions}</div>}
+                  <a href={`https://${p.lien}`} target="_blank" rel="noopener noreferrer" style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--blue)',textDecoration:'none'}}>🔗 {p.lien}</a>
+                </div>
+              ))}
+            </div>
+          )}
+ 
+          {result.badges.length === 0
+            ? <div className="empty card card-p"><div className="empty-text">Aucun badge pour ce profil.</div></div>
+            : <div className="grid-auto">{result.badges.map(b => <BadgeCard key={b.id} badge={b} showProject={true} />)}</div>
+          }
+        </div>
+      )}
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE EXPLORATEUR (avec stats + photos + noms burkinabè)
+// ═══════════════════════════════════════════════════
+const PageExplorateur = ({ currentUser, showToast }) => {
+  const [search, setSearch] = useState('');
+  const [filterDomain, setFilterDomain] = useState('');
+  const [offerForm, setOfferForm] = useState({ titre:'', message:'' });
+  const [showOffer, setShowOffer] = useState(null);
+  const [offerSent, setOfferSent] = useState('');
+ 
+  const users = (LS.get('sb_users') || []).filter(u => u.role === 'apprenant');
+  const allBadges = LS.get('sb_badges') || [];
+  const totalBadges = allBadges.length;
+  const expertCount = allBadges.filter(b=>b.niveau==='EXPERT').length;
+ 
+  const filtered = users.filter(u => {
+    const name = `${u.prenom} ${u.nom}`.toLowerCase();
+    const matchSearch = !search || name.includes(search.toLowerCase());
+    const badges = allBadges.filter(b => b.apprenantId === u.id);
+    const matchDomain = !filterDomain || badges.some(b => b.domaine === filterDomain);
+    return matchSearch && matchDomain;
+  });
+ 
+  const sendOffer = (apprenant) => {
+    if (!offerForm.titre) { showToast('Le titre de l\'offre est requis.'); return; }
+    LS.push('sb_offers', {
+      id: genId('OFR'),
+      apprenantId: apprenant.id,
+      recruteurId: currentUser.id,
+      recruteurNom: `${currentUser.prenom} ${currentUser.nom}`,
+      entreprise: currentUser.entreprise || '',
+      titre: offerForm.titre,
+      message: offerForm.message,
+      createdAt: dateNow(),
+    });
+    LS.push('sb_notifs', {
+      id: genId('NTF'),
+      toUserId: apprenant.id,
+      type: 'offer',
+      msg: `Nouvelle offre de ${currentUser.prenom} ${currentUser.nom} (${currentUser.entreprise || 'Recruteur'}) : "${offerForm.titre}"`,
+      read: false,
+      createdAt: dateNow(),
+    });
+    setShowOffer(null);
+    setOfferForm({ titre:'', message:'' });
+    setOfferSent(apprenant.id);
+    showToast(`Offre envoyée à ${apprenant.prenom} !`);
+    setTimeout(() => setOfferSent(''), 3000);
+  };
+ 
+  return (
+    <div className="page fade-up">
+      <div className="page-title">Explorateur de talents</div>
+ 
+      {/* Stats Banner */}
+      <div className="stats-banner">
+        <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginBottom:12,fontFamily:'var(--mono)',letterSpacing:'.06em'}}>RÉSEAU SKILLBADGE · BURKINA FASO</div>
+        <div className="stats-banner-grid">
+          <div className="stats-banner-item">
+            <div className="stats-banner-num">7 024</div>
+            <div className="stats-banner-label">Personnes certifiées</div>
+          </div>
+          <div className="stats-banner-item">
+            <div className="stats-banner-num">12 847</div>
+            <div className="stats-banner-label">Badges émis</div>
+          </div>
+          <div className="stats-banner-item">
+            <div className="stats-banner-num">214</div>
+            <div className="stats-banner-label">Entreprises partenaires</div>
+          </div>
+          <div className="stats-banner-item">
+            <div className="stats-banner-num">98%</div>
+            <div className="stats-banner-label">Vérifiés on-chain</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div style={{display:'flex',gap:10,marginBottom:24,flexWrap:'wrap'}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher par nom..."
+          style={{flex:1,minWidth:200,padding:'10px 14px',border:'1.5px solid var(--sand3)',borderRadius:9,fontSize:13,fontFamily:'var(--sans)',outline:'none'}}
+          onFocus={e=>e.target.style.borderColor='var(--gold)'}
+          onBlur={e=>e.target.style.borderColor='var(--sand3)'}
+        />
+        <select value={filterDomain} onChange={e=>setFilterDomain(e.target.value)}
+          style={{padding:'10px 14px',border:'1.5px solid var(--sand3)',borderRadius:9,fontSize:13,fontFamily:'var(--sans)',outline:'none',background:'white'}}>
+          <option value="">Tous les domaines</option>
+          {DOMAINES.map(d => <option key={d}>{d}</option>)}
+        </select>
+      </div>
+ 
+      {filtered.length === 0
+        ? <div className="empty card card-p"><div className="empty-text">Aucun profil trouvé.</div></div>
+        : <div className="grid-auto">
+            {filtered.map(u => {
+              const badges = allBadges.filter(b => b.apprenantId === u.id);
+              const score = badges.length * 150 + badges.filter(b=>b.niveau==='EXPERT').length * 100;
+              return (
+                <div key={u.id} className="participant-card">
+                  {/* Photo */}
+                  <div style={{position:'relative'}}>
+                    <img
+                      src={u.photo}
+                      alt={`${u.prenom} ${u.nom}`}
+                      className="participant-photo"
+                      onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                    />
+                    <div className="participant-photo-placeholder" style={{display:'none',background:'var(--sand2)'}}>👤</div>
+                    <div style={{position:'absolute',bottom:10,right:10}}>
+                      <ScoreRing score={score} size={44} />
+                    </div>
+                  </div>
+ 
+                  <div style={{padding:'14px 16px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:15,fontFamily:'var(--serif)'}}>{u.prenom} {u.nom}</div>
+                        <div style={{fontSize:11,color:'#6B6860'}}>{u.ville || 'Burkina Faso'}</div>
+                      </div>
+                    </div>
+ 
+                    {/* ID (visible par tous dans l'explorateur, pour contact) */}
+                    <div style={{margin:'8px 0'}}>
+                      <span className="participant-id">{u.recruteurId || '—'}</span>
+                    </div>
+ 
+                    {badges.length > 0 && (
+                      <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:10}}>
+                        {badges.slice(0,3).map(b => <span key={b.id} className="pill" style={{background:'var(--sand2)',color:'var(--ink)',border:'1px solid var(--sand3)',fontSize:9}}>{b.titre}</span>)}
+                        {badges.length > 3 && <span className="pill" style={{background:'var(--sand3)',color:'#6B6860',fontSize:9}}>+{badges.length-3}</span>}
+                      </div>
+                    )}
+ 
+                    <div style={{fontSize:11,fontFamily:'var(--mono)',color:'#6B6860',marginBottom:12}}>{u.wallet || '—'}</div>
+ 
+                    {currentUser.role === 'recruteur' && (
+                      offerSent === u.id
+                        ? <div className="alert alert-success" style={{marginBottom:0,fontSize:12}}>✓ Offre envoyée !</div>
+                        : showOffer === u.id
+                        ? (
+                          <div style={{background:'var(--sand)',borderRadius:9,padding:12}}>
+                            <div className="field" style={{marginBottom:8}}><label>Titre de l'offre *</label><input value={offerForm.titre} onChange={e=>setOfferForm(f=>({...f,titre:e.target.value}))} placeholder="Ex: Développeur React Senior" /></div>
+                            <div className="field" style={{marginBottom:8}}><label>Message</label><textarea rows={2} value={offerForm.message} onChange={e=>setOfferForm(f=>({...f,message:e.target.value}))} placeholder="Décrivez l'opportunité..." /></div>
+                            <div style={{display:'flex',gap:8}}>
+                              <button className="btn btn-gold btn-sm" onClick={() => sendOffer(u)}>Envoyer</button>
+                              <button className="btn btn-outline btn-sm" onClick={() => setShowOffer(null)}>Annuler</button>
+                            </div>
+                          </div>
+                        )
+                        : <button className="btn btn-outline btn-sm" style={{width:'100%',justifyContent:'center'}} onClick={() => setShowOffer(u.id)}>Envoyer une offre</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+      }
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE OFFRES RECRUTEUR
+// ═══════════════════════════════════════════════════
+const PageOffres = ({ user }) => {
+  const offers = (LS.get('sb_offers') || []).filter(o => o.recruteurId === user.id);
+  const users = LS.get('sb_users') || [];
+  return (
+    <div className="page fade-up page-sm">
+      <div className="page-title">Mes offres envoyées</div>
+      <div className="page-sub">Suivez les opportunités que vous avez envoyées aux apprenants.</div>
+      {offers.length === 0
+        ? <div className="empty card card-p"><div className="empty-icon">◈</div><div className="empty-text">Aucune offre envoyée. Explorez les talents pour commencer.</div></div>
+        : <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {offers.map(o => {
+              const apprenant = users.find(u => u.id === o.apprenantId);
+              return (
+                <div key={o.id} className="card card-p">
+                  <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:8}}>
+                    <Avatar prenom={apprenant?.prenom||'?'} nom={apprenant?.nom||'?'} size={40} photo={apprenant?.photo} />
+                    <div>
+                      <div style={{fontWeight:700,fontSize:14}}>{o.titre}</div>
+                      <div style={{fontSize:11,color:'#6B6860'}}>à {apprenant?.prenom} {apprenant?.nom} · {fmtDate(o.createdAt)}</div>
+                    </div>
+                    <span className="pill pill-valid" style={{marginLeft:'auto'}}>Envoyée</span>
+                  </div>
+                  {o.message && <div style={{fontSize:12,color:'#2A2A2A'}}>{o.message}</div>}
+                </div>
+              );
+            })}
+          </div>
+      }
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE COMPTE
+// ═══════════════════════════════════════════════════
+const PageCompte = ({ user, onLogout }) => {
+  const badges = (LS.get('sb_badges') || []).filter(b => b.apprenantId === user.id);
+  const handleReset = () => {
+    if (window.confirm('Réinitialiser toutes les données ? (Pour tests)')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+  return (
+    <div className="page fade-up page-sm">
+      <div className="page-title">Mon compte</div>
+      <div className="card card-p" style={{marginBottom:16}}>
+        <div style={{display:'flex',gap:16,alignItems:'center',marginBottom:24}}>
+          <Avatar prenom={user.prenom} nom={user.nom} size={64} photo={user.photo} />
+          <div>
+            <div style={{fontFamily:'var(--serif)',fontWeight:900,fontSize:22}}>{user.prenom} {user.nom}</div>
+            <div style={{fontSize:13,color:'#6B6860'}}>{user.email}</div>
+            <span className={`nav-role role-${user.role}`} style={{marginTop:4,display:'inline-block'}}>{user.role}</span>
+          </div>
+        </div>
+        <div className="divider" />
+        {[
+          ['ID unique', user.id],
+          user.recruteurId && ['ID recruteur', user.recruteurId],
+          ['Email', user.email],
+          ['Rôle', user.role],
+          user.ville && ['Ville', user.ville],
+          user.wallet && ['Wallet', user.wallet],
+          user.entreprise && ['Entreprise', user.entreprise],
+          user.etablissement && ['Établissement', user.etablissement],
+          user.domaine && ['Domaine', user.domaine],
+          ['Membre depuis', fmtDate(user.createdAt)],
+        ].filter(Boolean).map(([k, v]) => (
+          <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--sand2)',flexWrap:'wrap',gap:4}}>
+            <span style={{fontSize:13,color:'#6B6860'}}>{k}</span>
+            <span style={{fontSize:13,fontWeight:600,fontFamily:['Wallet','ID unique','ID recruteur'].includes(k)?'var(--mono)':'inherit',wordBreak:'break-all',color:k==='ID recruteur'?'var(--gold-dark)':'inherit'}}>{v}</span>
+          </div>
+        ))}
+        {user.role === 'apprenant' && badges.length > 0 && (
+          <div style={{marginTop:16}}>
+            <div style={{fontWeight:600,fontSize:13,marginBottom:8}}>Mes badges</div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {badges.map(b => <span key={b.id} className={niveauPill(b.niveau)}>{b.titre}</span>)}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <button className="btn btn-danger" onClick={onLogout}>Se déconnecter</button>
+        <button className="btn btn-outline btn-sm" style={{fontSize:11,color:'#6B6860'}} onClick={handleReset}>Réinitialiser les données</button>
+      </div>
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE NOTIFICATIONS (APPRENANT)
+// ═══════════════════════════════════════════════════
+const PageNotifications = ({ user }) => {
+  const [notifs, setNotifs] = React.useState([]);
+  const allBadges = LS.get('sb_badges') || [];
+ 
+  React.useEffect(() => {
+    const all = LS.get('sb_notifs') || [];
+    const mine = all.filter(n => n.toUserId === user.id).sort((a,b) => b.createdAt?.localeCompare(a.createdAt || '') || 0);
+    setNotifs(mine);
+    // Mark all as read
+    const updated = all.map(n => n.toUserId === user.id ? { ...n, read: true } : n);
+    LS.set('sb_notifs', updated);
+  }, [user.id]);
+ 
+  const typeIcon = (type) => {
+    if (type === 'badge_awarded') return '🎖️';
+    if (type === 'projet_rejected') return '✕';
+    if (type === 'comment') return '💬';
+    if (type === 'offer') return '📩';
+    return '🔔';
+  };
+  const typeBg = (type) => {
+    if (type === 'badge_awarded') return { bg:'var(--gold-light)', border:'var(--gold)' };
+    if (type === 'projet_rejected') return { bg:'var(--red-light)', border:'#FCA5A5' };
+    if (type === 'comment') return { bg:'var(--purple-light)', border:'#D8B4FE' };
+    if (type === 'offer') return { bg:'var(--green-light)', border:'#6EE7B7' };
+    return { bg:'var(--blue-light)', border:'#93C5FD' };
+  };
+ 
+  return (
+    <div className="page fade-up page-sm">
+      <div className="page-title">Mes notifications</div>
+      <div className="page-sub">Badges reçus, commentaires de formateurs et offres d'entreprises.</div>
+ 
+      {notifs.length === 0
+        ? <div className="empty card card-p"><div className="empty-icon">🔔</div><div className="empty-text">Aucune notification pour le moment.</div></div>
+        : <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {notifs.map(n => {
+              const { bg, border } = typeBg(n.type);
+              const badge = n.badgeId ? allBadges.find(b => b.id === n.badgeId) : null;
+              return (
+                <div key={n.id} style={{background:bg,border:`1px solid ${border}`,borderRadius:12,padding:'14px 18px'}}>
+                  <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+                    <span style={{fontSize:20}}>{typeIcon(n.type)}</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:13,color:'var(--ink)',lineHeight:1.6}}>{n.msg}</div>
+                      <div style={{fontSize:11,color:'#6B6860',marginTop:4}}>{fmtDate(n.createdAt)}</div>
+                      {badge && (
+                        <div style={{marginTop:8,display:'inline-flex',alignItems:'center',gap:8,background:'white',borderRadius:8,padding:'6px 10px',border:'1px solid var(--sand3)'}}>
+                          <span className={niveauPill(badge.niveau)}>{badge.niveau}</span>
+                          <span style={{fontWeight:700,fontSize:13}}>{badge.titre}</span>
+                          <span style={{fontSize:11,color:'#6B6860'}}>{badge.domaine}</span>
+                          {badge.score && <span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--gold-dark)'}}>{badge.score}/100</span>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+      }
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE PROJETS NOTÉS (FORMATEUR)
+// ═══════════════════════════════════════════════════
+const PageProjetsNotes = ({ user }) => {
+  const users = LS.get('sb_users') || [];
+  const allProjets = LS.get('sb_projets') || [];
+  const allBadges = LS.get('sb_badges') || [];
+  const allComments = LS.get('sb_comments') || [];
+ 
+  // Projets validés ou refusés par ce formateur (via badges émis ou rejet)
+  const badgesEmis = allBadges.filter(b => b.formateurId === user.id);
+  const badgeProjetIds = new Set(badgesEmis.map(b => b.projetId).filter(Boolean));
+  const projetsNotes = allProjets.filter(p => p.statut !== 'en_attente' && (badgeProjetIds.has(p.id) || p.statut === 'rejeté'));
+ 
+  return (
+    <div className="page fade-up">
+      <div className="page-title">Projets notés</div>
+      <div className="page-sub">Historique de tous les projets que vous avez évalués (validés ou refusés).</div>
+ 
+      {projetsNotes.length === 0
+        ? <div className="empty card card-p"><div className="empty-icon">◈</div><div className="empty-text">Aucun projet noté encore.</div></div>
+        : <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            {projetsNotes.map(p => {
+              const apprenant = users.find(u => u.id === p.apprenantId);
+              const badge = badgesEmis.find(b => b.projetId === p.id);
+              const comments = allComments.filter(c => c.projetId === p.id && c.formateurId === user.id);
+              return (
+                <div key={p.id} className="card card-p">
+                  <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:12}}>
+                    <div style={{width:44,height:44,borderRadius:10,background:'var(--sand2)',border:'1.5px solid var(--sand3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>📁</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>{p.titre}</div>
+                      <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'var(--ink)',color:'var(--gold)',fontFamily:'var(--mono)',fontSize:12,fontWeight:700,padding:'3px 9px',borderRadius:6,marginBottom:6}}>
+                        🔑 {apprenant?.recruteurId || '—'}
+                      </div>
+                      <div style={{fontSize:11,color:'#6B6860',marginBottom:6}}>Soumis le {fmtDate(p.createdAt)}</div>
+                      <div style={{fontSize:12,color:'#2A2A2A',lineHeight:1.5}}>{p.resume}</div>
+                      {p.notions && <div style={{fontFamily:'var(--mono)',fontSize:11,color:'#6B6860',marginTop:4}}>{p.notions}</div>}
+                      <a href={`https://${p.lien}`} target="_blank" rel="noopener noreferrer"
+                        style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--blue)',textDecoration:'none',display:'inline-block',marginTop:4}}>🔗 {p.lien}</a>
+                    </div>
+                    <span className={`pill ${p.statut==='validé'?'pill-valid':'pill-reject'}`}>
+                      {p.statut === 'validé' ? '✓ Validé' : '✕ Refusé'}
+                    </span>
+                  </div>
+ 
+                  {badge && (
+                    <div style={{background:'var(--gold-light)',border:'1px solid var(--gold)',borderRadius:9,padding:'10px 14px',marginBottom:10,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+                      <span className={niveauPill(badge.niveau)}>{badge.niveau}</span>
+                      <span style={{fontWeight:700,fontSize:13}}>{badge.titre}</span>
+                      <span style={{fontSize:11,color:'#6B6860'}}>{badge.domaine}</span>
+                      {badge.score && <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--gold-dark)',marginLeft:'auto'}}>{badge.score}/100</span>}
+                      {badge.commentaire && <div style={{width:'100%',fontSize:12,color:'var(--ink2)',fontStyle:'italic',borderTop:'1px solid var(--gold)',paddingTop:6,marginTop:4}}>💬 "{badge.commentaire}"</div>}
+                    </div>
+                  )}
+ 
+                  {p.rejetMsg && (
+                    <div style={{background:'var(--red-light)',border:'1px solid #FCA5A5',borderRadius:9,padding:'8px 12px',marginBottom:10,fontSize:12,color:'var(--red)'}}>
+                      Motif de refus : {p.rejetMsg}
+                    </div>
+                  )}
+ 
+                  {comments.length > 0 && (
+                    <div>
+                      <div style={{fontSize:11,fontWeight:700,color:'#6B6860',textTransform:'uppercase',letterSpacing:'.05em',marginBottom:6}}>Vos commentaires ({comments.length})</div>
+                      {comments.map(c => (
+                        <div key={c.id} className="comment">
+                          <div className="comment-text">{c.texte}</div>
+                          <div className="comment-date">{fmtDate(c.createdAt)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+      }
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// PAGE BADGE TERRAIN (RECRUTEUR)
+// ═══════════════════════════════════════════════════
+const PageBadgeTerrain = ({ user, showToast }) => {
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [form, setForm] = useState({ poste:'', domaine:'', duree:'', description:'', commentaire:'' });
+  const [emitted, setEmitted] = useState(false);
+ 
+  const handleSearch = () => {
+    if (!query.trim()) return;
+    setLoading(true); setResult(null); setNotFound(false); setEmitted(false);
+    setTimeout(() => {
+      const users = LS.get('sb_users') || [];
+      const found = users.find(u => u.role === 'apprenant' && u.recruteurId === query.trim());
+      if (found) {
+        const badges = (LS.get('sb_badges') || []).filter(b => b.apprenantId === found.id);
+        setResult({ user: found, badges });
+      } else {
+        setNotFound(true);
+      }
+      setLoading(false);
+    }, 800);
+  };
+ 
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+ 
+  const handleEmitTerrain = () => {
+    if (!form.poste || !form.domaine || !form.duree) { showToast('Veuillez remplir le poste, le domaine et la durée.'); return; }
+    if (!result) return;
+ 
+    const newBadge = {
+      id: genId('BDG'),
+      type: 'terrain',
+      titre: `${form.poste} — Expérience Terrain`,
+      niveau: 'EXPERT',
+      domaine: form.domaine,
+      score: 100,
+      poste: form.poste,
+      duree: form.duree,
+      description: form.description,
+      commentaire: form.commentaire,
+      entreprise: user.entreprise || '',
+      apprenantId: result.user.id,
+      formateurId: user.id,
+      formateurNom: `${user.prenom} ${user.nom} (${user.entreprise || 'Recruteur'})`,
+      date: dateNow(),
+      hash: genHash(),
+      tokenId: 'SKB-T' + Math.floor(10000+Math.random()*90000),
+      projetId: null,
+    };
+    LS.push('sb_badges', newBadge);
+ 
+    // Update apprenant score
+    const allUsers = LS.get('sb_users') || [];
+    const apprenant = allUsers.find(u => u.id === result.user.id);
+    if (apprenant) {
+      LS.update('sb_users', result.user.id, { score: (apprenant.score || 0) + 300 });
+    }
+ 
+    LS.push('sb_notifs', {
+      id: genId('NTF'),
+      toUserId: result.user.id,
+      type: 'badge_awarded',
+      msg: `🏭 Badge Terrain EXPERT attribué par ${user.prenom} ${user.nom} (${user.entreprise || 'Recruteur'}) pour le poste "${form.poste}" — ${form.duree}.${form.commentaire ? ' Commentaire : ' + form.commentaire : ''}`,
+      badgeId: newBadge.id,
+      read: false,
+      createdAt: dateNow(),
+    });
+ 
+    setEmitted(true);
+    setForm({ poste:'', domaine:'', duree:'', description:'', commentaire:'' });
+    showToast(`Badge Terrain émis pour ${result.user.prenom} !`);
+  };
+ 
+  return (
+    <div className="page fade-up page-sm">
+      <div className="page-title">Badge Terrain Expert</div>
+      <div className="page-sub">Certifiez l'expérience terrain d'un apprenant ayant travaillé dans votre entreprise.</div>
+ 
+      <div className="alert alert-warn" style={{marginBottom:20}}>
+        🏭 <strong>Badge Terrain :</strong> Ce badge EXPERT est réservé aux recruteurs pour certifier une expérience professionnelle réelle. Il est immuable une fois émis.
+      </div>
+ 
+      <div className="card card-p" style={{marginBottom:20}}>
+        <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>1. Identifier l'apprenant par son ID</div>
+        <div style={{display:'flex',gap:10,marginBottom:8}}>
+          <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSearch()}
+            placeholder="ID du candidat ex: X670&gm"
+            style={{flex:1,padding:'11px 14px',border:'1.5px solid var(--sand3)',borderRadius:9,fontSize:13,fontFamily:'var(--mono)',outline:'none'}}
+            onFocus={e=>e.target.style.borderColor='var(--gold)'}
+            onBlur={e=>e.target.style.borderColor='var(--sand3)'}
+          />
+          <button className="btn btn-primary" onClick={handleSearch}>Rechercher</button>
+        </div>
+        <div style={{fontSize:11,color:'#6B6860'}}>Essayez : <span style={{fontFamily:'var(--mono)',fontWeight:600}}>X670&gm</span></div>
+      </div>
+ 
+      {loading && <div style={{textAlign:'center',padding:32,color:'#6B6860'}}><div style={{width:28,height:28,border:'3px solid var(--gold)',borderTopColor:'transparent',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto 8px'}} /></div>}
+      {notFound && <div className="alert alert-error">Aucun apprenant trouvé pour cet ID.</div>}
+ 
+      {result && (
+        <div className="fade-up">
+          <div className="card card-p" style={{marginBottom:16,display:'flex',gap:14,alignItems:'center'}}>
+            <Avatar prenom={result.user.prenom} nom={result.user.nom} size={52} photo={result.user.photo} />
+            <div>
+              <div style={{fontFamily:'var(--serif)',fontWeight:900,fontSize:20}}>{result.user.prenom} {result.user.nom}</div>
+              <div style={{fontSize:12,color:'#6B6860'}}>{result.user.ville || 'Burkina Faso'}</div>
+              <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
+                {result.badges.slice(0,3).map(b => <span key={b.id} className={niveauPill(b.niveau)} style={{fontSize:9}}>{b.titre}</span>)}
+                {result.badges.length > 3 && <span style={{fontSize:10,color:'#6B6860'}}>+{result.badges.length-3} badges</span>}
+              </div>
+            </div>
+            <div style={{marginLeft:'auto',textAlign:'center'}}>
+              <div style={{fontFamily:'var(--serif)',fontWeight:900,fontSize:28,color:'var(--gold)'}}>{result.badges.length}</div>
+              <div style={{fontSize:10,color:'#6B6860'}}>badges</div>
+            </div>
+          </div>
+ 
+          {emitted
+            ? <div className="alert alert-success">✓ Badge Terrain EXPERT émis avec succès ! L'apprenant a été notifié.</div>
+            : (
+              <div className="card card-p">
+                <div style={{fontWeight:700,fontSize:14,marginBottom:14}}>2. Définir l'expérience terrain</div>
+                <div className="grid-2" style={{gap:12}}>
+                  <div className="field"><label>Poste occupé *</label><input value={form.poste} onChange={e=>setF('poste',e.target.value)} placeholder="Ex: Développeur React Senior" /></div>
+                  <div className="field"><label>Domaine *</label>
+                    <select value={form.domaine} onChange={e=>setF('domaine',e.target.value)}>
+                      <option value="">Sélectionner...</option>
+                      {DOMAINES.map(d => <option key={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="field"><label>Durée de la mission *</label><input value={form.duree} onChange={e=>setF('duree',e.target.value)} placeholder="Ex: 3 mois, 6 mois, 1 an..." /></div>
+                  <div className="field"><label>Entreprise</label><input value={user.entreprise || ''} disabled style={{background:'var(--sand2)',color:'#6B6860'}} /></div>
+                </div>
+                <div className="field"><label>Description de l'expérience</label><textarea value={form.description} onChange={e=>setF('description',e.target.value)} placeholder="Décrivez les missions et responsabilités exercées..." rows={3} /></div>
+                <div className="field"><label>Commentaire / Appréciation</label><textarea value={form.commentaire} onChange={e=>setF('commentaire',e.target.value)} placeholder="Ex: Candidat très compétent, autonome et rigoureux. A su s'intégrer rapidement dans notre équipe..." rows={3} /></div>
+                <div style={{background:'#FEF3C7',border:'1px solid #F59E0B',borderRadius:8,padding:'10px 14px',fontSize:12,color:'#92400E',marginBottom:14}}>
+                  ⚠️ Ce badge est définitif et immuable. Vérifiez bien les informations avant d'émettre.
+                </div>
+                <button className="btn btn-gold" onClick={handleEmitTerrain}>🏭 Émettre le Badge Terrain EXPERT</button>
+              </div>
+            )
+          }
+        </div>
+      )}
+    </div>
+  );
+};
+ 
+// ═══════════════════════════════════════════════════
+// APP ROOT
+// ═══════════════════════════════════════════════════
+function App() {
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState(null);
+  const [toast, setToast] = useState('');
+ 
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 4000); };
+ 
+  const handleLogin = (u) => {
+    setUser(u);
+    const defaults = { apprenant:'portfolio', recruteur:'verification', formateur:'dashboard' };
+    setPage(defaults[u.role]);
+  };
+  const handleLogout = () => { setUser(null); setPage(null); };
+ 
+  const notifCount = user?.role === 'formateur'
+    ? (LS.get('sb_projets') || []).filter(p => p.statut === 'en_attente').length
+    : user?.role === 'apprenant'
+    ? (LS.get('sb_notifs') || []).filter(n => n.toUserId === user.id && !n.read).length
+    : 0;
+ 
+  if (!user) return <AuthPage onLogin={handleLogin} />;
+ 
+  const renderPage = () => {
+    if (page === 'portfolio')    return <PagePortfolio user={user} showToast={showToast} />;
+    if (page === 'notifications') return <PageNotifications user={user} />;
+    if (page === 'verification') return <PageVerification user={user} />;
+    if (page === 'explorateur')  return <PageExplorateur currentUser={user} showToast={showToast} />;
+    if (page === 'offres')       return <PageOffres user={user} />;
+    if (page === 'badge_terrain') return <PageBadgeTerrain user={user} showToast={showToast} />;
+    if (page === 'dashboard')    return <PageDashboard user={user} />;
+    if (page === 'validation')   return <PageValidation user={user} showToast={showToast} />;
+    if (page === 'historique')   return <PageHistorique user={user} />;
+    if (page === 'projets_notes') return <PageProjetsNotes user={user} />;
+    if (page === 'compte')       return <PageCompte user={user} onLogout={handleLogout} />;
+    return null;
+  };
+ 
+  return (
+    <div style={{minHeight:'100vh',background:'var(--sand)',fontFamily:'var(--sans)'}}>
+      {toast && <Toast msg={toast} onClose={() => setToast('')} />}
+      <Nav user={user} page={page} setPage={setPage} onLogout={handleLogout} notifCount={notifCount} />
+      <main>{renderPage()}</main>
+      <footer style={{textAlign:'center',padding:'24px 16px',fontSize:11,color:'#6B6860',borderTop:'1px solid var(--sand3)',background:'var(--white)',marginTop:48}}>
+        © 2026 SkillBadge · Le Registre Souverain des Compétences · MIABE Hackathon · Burkina Faso
+      </footer>
+    </div>
+  );
+}
+ 
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
