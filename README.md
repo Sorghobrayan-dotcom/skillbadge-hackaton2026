@@ -100,7 +100,7 @@ cd skillbadge-hackaton2026
 - **Suivi des offres** — Historique de toutes les offres envoyées
 - **Badge Terrain Expert**  — Fonctionnalité exclusive : certifier une expérience professionnelle réelle d'un apprenant ayant travaillé dans l'entreprise (poste, domaine, durée, appréciation) → Badge NFT immuable de type "terrain", score 100/100
 
-### 🔗 Système Blockchain
+###  Système Blockchain
 
 - Chaque badge génère un **tokenId unique** (format `SKB-XXXXX`) et un **hash de transaction** (format `0x...`)
 - Les badges Terrain ont un tokenId spécial (`SKB-TXXXXX`) et sont marqués comme immuables
